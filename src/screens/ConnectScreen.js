@@ -25,7 +25,7 @@ export default function ConnectScreen({ navigation }) {
       >
         <SafeAreaView style={styles.safeTop}>
           <View style={styles.topBar}>
-            <Pressable onPress={() => navigation.navigate("Home")}>
+            <Pressable onPress={() => navigation.navigate("Guide")}>
               <Text style={styles.skip}>Pular</Text>
             </Pressable>
           </View>
@@ -69,7 +69,7 @@ export default function ConnectScreen({ navigation }) {
           {/* Botão marrom igual aos outros */}
           <TouchableOpacity
             style={styles.button}
-            onPress={() => navigation.navigate("Home")}
+            onPress={() => navigation.navigate("Guide")}
             activeOpacity={0.8}
           >
             <LinearGradient

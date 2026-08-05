@@ -502,6 +502,7 @@ const styles = StyleSheet.create({
   },
   helpButton: {
     width: "100%",
+    
     borderRadius: 30,
     overflow: "hidden",
   },

@@ -69,10 +69,13 @@ export default function SecurityScreens({ navigation }) {
           <ProgressDots total={4} activeIndex={2} />
         </View>
 
-        <PrimaryButton
-          label="Próximo passo"
-          onPress={() => navigation.navigate("Connect")}
-        />
+        {/* Botão menor */}
+        <View style={styles.buttonWrapper}>
+          <PrimaryButton
+            label="Próximo passo"
+            onPress={() => navigation.navigate("Connect")}
+          />
+        </View>
 
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Text style={styles.backLabel}>Voltar</Text>
@@ -104,10 +107,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     paddingBottom: spacing.xl,
   },
-  // REMOVEMOS o illustrationCard e deixamos só a imagem
   illustrationImage: {
-    width: 260, // Largura fixa
-    height: 260, // Altura fixa (quadrada)
+    width: 260,
+    height: 260,
     marginBottom: spacing.lg,
   },
   title: {
@@ -139,6 +141,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   dotsWrapper: { alignItems: "center", marginBottom: spacing.md },
+  
+  // Botão menor
+  buttonWrapper: {
+    width: "55%",
+    maxWidth: 260,
+    alignSelf: "center",
+  },
+  
   backBtn: { alignItems: "center", marginTop: spacing.md },
   backLabel: { fontSize: 14, fontWeight: "600", color: colors.textDark },
 });

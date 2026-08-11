@@ -56,31 +56,33 @@ export default function ConnectScreen({ navigation }) {
           <View style={styles.cardsRow}>
             <FeatureCard 
               icon="share-social-outline" 
-              title="Rede Ampla" 
-              subtitle="" 
+              title="Rede ampla" 
+              subtitle="Profissionais e instituições de confiança" 
             />
             <FeatureCard 
               icon="navigate-outline" 
-              title="Perto de Você" 
-              subtitle="" 
+              title="Ongs e hospitais" 
+              subtitle="Apoio localizado" 
             />
           </View>
 
-          {/* Botão marrom igual aos outros */}
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate("Guide")}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={[colors.brownAccent, colors.brownAccent]} // Cor marrom
-              style={styles.buttonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
+          {/* Botão marrom menor */}
+          <View style={styles.buttonWrapper}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => navigation.navigate("Guide")}
+              activeOpacity={0.8}
             >
-              <Text style={styles.buttonText}>Começar →</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+              <LinearGradient
+                colors={[colors.brownAccent, colors.brownAccent]}
+                style={styles.buttonGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Text style={styles.buttonText}>Começar →</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
 
           <Pressable
             style={styles.loginRow}
@@ -106,6 +108,7 @@ const styles = StyleSheet.create({
   topBar: {
     alignItems: "flex-end",
     paddingTop: Platform.OS === "web" ? spacing.md : 0,
+    paddingRight: spacing.sm, // Puxa o "Pular" mais para dentro
   },
   skip: { 
     color: "rgba(255,255,255,0.85)", 
@@ -155,12 +158,18 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     width: "100%",
   },
-  // Botão marrom
+  
+  // Botão menor
+  buttonWrapper: {
+    width: "55%",
+    maxWidth: 260,
+    alignSelf: "center",
+  },
+  
   button: {
     width: "100%",
     borderRadius: 30,
     overflow: "hidden",
-    marginBottom: spacing.md,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,

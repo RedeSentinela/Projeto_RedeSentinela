@@ -6,14 +6,33 @@ import {
   Pressable,
   SafeAreaView,
   Platform,
+  Image,
+  useWindowDimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import PrimaryButton from "../components/PrimaryButton";
 import ProgressDots from "../components/ProgressDots";
-import { Image } from "react-native";
 import { colors, typography, spacing } from "../theme/theme";
 
 export default function WelcomeScreen({ navigation }) {
+  const { width, height } = useWindowDimensions();
+
+  // Ajusta o tamanho da imagem de acordo com a tela
+  const isSmallScreen = width < 380;
+  const isLargeScreen = width > 600;
+
+  const logoWidth = isLargeScreen
+    ? 320
+    : isSmallScreen
+    ? width * 0.65
+    : width * 0.75;
+
+  const logoHeight = isLargeScreen
+    ? 280
+    : isSmallScreen
+    ? 210
+    : 260;
+
   return (
     <View style={styles.root}>
       <LinearGradient
@@ -21,25 +40,37 @@ export default function WelcomeScreen({ navigation }) {
         style={styles.gradient}
       >
         <SafeAreaView style={styles.safeTop}>
+          {/* Barra superior */}
           <View style={styles.topBar}>
-            <Pressable onPress={() => navigation.navigate("Home")}>
+            <Pressable
+              onPress={() => navigation.navigate("Home")}
+              hitSlop={10}
+            >
               <Text style={styles.skip}>Pular</Text>
             </Pressable>
           </View>
 
+          {/* Área da imagem */}
           <View style={styles.illustrationCard}>
-          <Image
-            source={require("../assets/RedeSentinela.png")}
-            style={{ width: "25%", height: "80%", borderRadius: 24 }}
-            resizeMode="cover"
-          />
-        </View>
+            <Image
+              source={require("../assets/RedeSentinela.png")}
+              style={{
+                width: logoWidth,
+                height: logoHeight,
+              }}
+              resizeMode="contain"
+            />
+          </View>
         </SafeAreaView>
       </LinearGradient>
 
+      {/* Parte branca inferior */}
       <View style={styles.sheet}>
         <View style={styles.sheetContent}>
-          <Text style={styles.title}>Olá, bem-vinda à Rede Sentinela</Text>
+          <Text style={styles.title}>
+            Olá, bem-vinda à Rede Sentinela
+          </Text>
+
           <Text style={styles.subtitle}>
             Passe para o lado e veja o que você pode fazer com o nosso app
           </Text>
@@ -48,10 +79,13 @@ export default function WelcomeScreen({ navigation }) {
             <ProgressDots total={3} activeIndex={0} />
           </View>
 
-          <PrimaryButton
-            label="Próximo passo"
-            onPress={() => navigation.navigate("Support")}
-          />
+          {/* Botão menor */}
+          <View style={styles.buttonWrapper}>
+            <PrimaryButton
+              label="Próximo passo"
+              onPress={() => navigation.navigate("Support")}
+            />
+          </View>
 
           <Text style={styles.hint}>
             Passe para o lado e veja o que você pode fazer com o nosso app
@@ -63,38 +97,41 @@ export default function WelcomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.oliveLight },
-  gradient: { flex: 1.15 },
-  safeTop: { flex: 1, paddingHorizontal: spacing.lg },
+  root: {
+    flex: 1,
+    backgroundColor: colors.oliveLight,
+  },
+
+  gradient: {
+    flex: 1.15,
+  },
+
+  safeTop: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+  },
+
   topBar: {
+    width: "100%",
     alignItems: "flex-end",
     paddingTop: Platform.OS === "web" ? spacing.md : 0,
+    paddingRight: spacing.sm,
   },
-  skip: { color: "rgba(255,255,255,0.85)", fontSize: 14, fontWeight: "500" },
+
+  skip: {
+    color: "rgba(255,255,255,0.85)",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+
   illustrationCard: {
     flex: 1,
+    width: "100%",
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
   },
-  illustrationInner: {
-    backgroundColor: "#fff",
-    borderRadius: 24,
-    width: "78%",
-    aspectRatio: 0.72,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingTop: spacing.md,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 6,
-  },
-  illustrationCaption: {
-    fontSize: 11,
-    color: colors.textMuted,
-    marginBottom: spacing.sm,
-  },
+
   sheet: {
     backgroundColor: colors.cardWhite,
     borderTopLeftRadius: 28,
@@ -102,21 +139,35 @@ const styles = StyleSheet.create({
     marginTop: -28,
     paddingTop: spacing.lg,
   },
+
   sheetContent: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
   },
+
   title: {
     ...typography.h1,
     textAlign: "center",
     marginBottom: spacing.sm,
   },
+
   subtitle: {
     ...typography.body,
     textAlign: "center",
     marginBottom: spacing.lg,
   },
-  dotsWrapper: { marginBottom: spacing.lg },
+
+  dotsWrapper: {
+    marginBottom: spacing.lg,
+  },
+
+  // Botão menor
+  buttonWrapper: {
+    width: "55%",
+    maxWidth: 260,
+    alignSelf: "center",
+  },
+
   hint: {
     ...typography.body,
     fontSize: 12,

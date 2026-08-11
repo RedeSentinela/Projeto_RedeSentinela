@@ -10,10 +10,12 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function GuideDetailScreen({ navigation, route }) {
   const params = route?.params || {};
-  
+
   const defaultContent = {
     title: "Como ajudar uma amiga em risco",
     type: "Guia de Apoio",
@@ -61,14 +63,20 @@ export default function GuideDetailScreen({ navigation, route }) {
         text: "Saber o que falar e como abordar o assunto é fundamental para não piorar a situação da vítima."
       },
       {
-        type: "item",
-        title: "✓ O que dizer:",
-        description: "• 'Eu acredito em você'\n• 'Não foi sua culpa'\n• 'Você não está sozinha'\n• 'Estou aqui para te ouvir'\n• 'Existem pessoas que podem te ajudar'"
+        type: "checklist",
+        items: [
+          "Estou aqui para você, não importa o que aconteça.",
+          "A culpa não é sua. Ninguém merece passar por isso.",
+          "Eu acredito em você e no que você está me contando."
+        ]
       },
       {
-        type: "item",
-        title: "✗ O que NÃO dizer:",
-        description: "• 'Por que você não saiu antes?'\n• 'Você deve ter feito algo para provocar'\n• 'Ele não parece ser tão ruim'\n• 'Tenta relevar, todo casal briga'\n• 'Isso é exagero seu'"
+        type: "xlist",
+        items: [
+          "Por que você simplesmente não vai embora?",
+          "Eu te avisei que ele não prestava.",
+          "Você deve ter feito algo para ele reagir assim."
+        ]
       },
       {
         type: "divider"
@@ -82,9 +90,14 @@ export default function GuideDetailScreen({ navigation, route }) {
         text: "Além do apoio emocional, você pode oferecer ajuda concreta:"
       },
       {
-        type: "item",
-        title: "Ações que fazem a diferença",
-        description: "• Oferecer um lugar seguro para ela ficar\n• Ajudar a criar um plano de segurança\n• Acompanhar em consultas médicas ou jurídicas\n• Manter contato frequente para mostrar que ela não está sozinha\n• Guardar documentos importantes em um local seguro"
+        type: "bullet",
+        items: [
+          "Oferecer um lugar seguro para ela ficar",
+          "Ajudar a criar um plano de segurança",
+          "Acompanhar em consultas médicas ou jurídicas",
+          "Manter contato frequente para mostrar que ela não está sozinha",
+          "Guardar documentos importantes em um local seguro"
+        ]
       },
       {
         type: "divider"
@@ -98,9 +111,14 @@ export default function GuideDetailScreen({ navigation, route }) {
         text: "Apoiar alguém em situação de violência pode ser emocionalmente desgastante. É importante que você também cuide da sua saúde mental:"
       },
       {
-        type: "item",
-        title: "Autocuidado",
-        description: "• Busque apoio para você também\n• Estabeleça limites saudáveis\n• Não se culpe pelo que está fora do seu controle\n• Reconheça seus próprios limites\n• Busque informações sobre o assunto para se sentir mais preparado"
+        type: "bullet",
+        items: [
+          "Busque apoio para você também",
+          "Estabeleça limites saudáveis",
+          "Não se culpe pelo que está fora do seu controle",
+          "Reconheça seus próprios limites",
+          "Busque informações sobre o assunto para se sentir mais preparado"
+        ]
       }
     ]
   };
@@ -112,7 +130,7 @@ export default function GuideDetailScreen({ navigation, route }) {
   const handleHelpPress = () => {
     Alert.alert(
       "Ajuda disponível",
-      "Você será direcionado para uma atendente. Deseja continuar?",
+      "Você será direcionado para um especialista. Deseja continuar?",
       [
         { text: "Cancelar", style: "cancel" },
         { text: "Sim", onPress: () => {
@@ -148,6 +166,41 @@ export default function GuideDetailScreen({ navigation, route }) {
               <Text style={styles.itemDescription}>{item.description}</Text>
             </View>
           );
+        case "checklist":
+          return (
+            <View key={index} style={styles.cardContainer}>
+              <Text style={styles.cardLabel}>✓ O que ajuda</Text>
+              {item.items.map((text, i) => (
+                <View key={i} style={styles.cardItem}>
+                  <Ionicons name="checkmark-circle" size={22} color="#4CAF50" style={styles.cardIcon} />
+                  <Text style={styles.cardText}>{text}</Text>
+                </View>
+              ))}
+            </View>
+          );
+        case "xlist":
+          return (
+            <View key={index} style={[styles.cardContainer, styles.cardDanger]}>
+              <Text style={styles.cardLabel}>✗ O que evitar</Text>
+              {item.items.map((text, i) => (
+                <View key={i} style={styles.cardItem}>
+                  <Ionicons name="close-circle" size={22} color="#E53935" style={styles.cardIcon} />
+                  <Text style={styles.cardText}>{text}</Text>
+                </View>
+              ))}
+            </View>
+          );
+        case "bullet":
+          return (
+            <View key={index} style={styles.bulletContainer}>
+              {item.items.map((text, i) => (
+                <View key={i} style={styles.bulletItem}>
+                  <View style={styles.bulletDot} />
+                  <Text style={styles.bulletText}>{text}</Text>
+                </View>
+              ))}
+            </View>
+          );
         default:
           return null;
       }
@@ -162,11 +215,15 @@ export default function GuideDetailScreen({ navigation, route }) {
           <Pressable 
             onPress={() => navigation.goBack()}
             hitSlop={12}
+            style={styles.backButton}
           >
-            <Text style={styles.backText}>←</Text>
+            <Ionicons name="arrow-back" size={24} color="#333333" />
           </Pressable>
 
-          <Text style={styles.headerTitle}>SafeSpace</Text>
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle}>SafeSpace</Text>
+            <Text style={styles.headerSubtitle}>Guía de Apoyo | Ajudando Amigas</Text>
+          </View>
 
           <View style={styles.placeholder} />
         </View>
@@ -193,7 +250,20 @@ export default function GuideDetailScreen({ navigation, route }) {
             onPress={handleHelpPress}
             activeOpacity={0.8}
           >
-            <Text style={styles.helpButtonLabel}>Falar com uma atendente</Text>
+            <LinearGradient
+              colors={["#A0522D", "#8B4513"]}
+              style={styles.helpButtonGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <View style={styles.helpButtonContent}>
+                <Text style={styles.helpButtonTop}>Precisa de apoio agora?</Text>
+                <View style={styles.helpButtonRow}>
+                  <Text style={styles.helpButtonLabel}>Falar com um especialista ou psicólogo</Text>
+                  <Ionicons name="arrow-forward" size={20} color="#FFF" style={styles.helpButtonIcon} />
+                </View>
+              </View>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </View>
@@ -204,11 +274,11 @@ export default function GuideDetailScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#F5F6F8",
   },
   container: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: "#F5F6F8",
   },
   header: {
     flexDirection: "row",
@@ -219,17 +289,25 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
+    borderBottomColor: "#EEEEEE",
   },
-  backText: {
-    fontSize: 28,
-    color: "#333333",
-    fontWeight: "300",
+  backButton: {
+    padding: 4,
+  },
+  headerCenter: {
+    alignItems: "center",
+    flex: 1,
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: "600",
+    fontWeight: "700",
     color: "#333333",
+  },
+  headerSubtitle: {
+    fontSize: 11,
+    color: "#888888",
+    fontWeight: "500",
+    marginTop: 1,
   },
   placeholder: {
     width: 40,
@@ -239,9 +317,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingTop: 24,
-    paddingBottom: 150,
+    paddingBottom: 160,
   },
   tagContainer: {
     backgroundColor: "#E8F0E3",
@@ -266,23 +344,28 @@ const styles = StyleSheet.create({
   paragraphText: {
     fontSize: 16,
     color: "#444444",
-    lineHeight: 27,
+    lineHeight: 26,
     marginBottom: 16,
   },
   divider: {
     height: 1,
-    backgroundColor: "#E0E0E0",
-    marginVertical: 20,
+    backgroundColor: "#E8E8E8",
+    marginVertical: 24,
   },
   subtitleText: {
     fontSize: 20,
     fontWeight: "700",
     color: "#1A1A1A",
-    marginBottom: 16,
-    marginTop: 8,
+    marginBottom: 14,
+    marginTop: 4,
   },
   itemContainer: {
     marginBottom: 20,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#F0F0F0",
   },
   itemTitle: {
     fontSize: 17,
@@ -291,28 +374,86 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   itemDescription: {
-    fontSize: 16,
+    fontSize: 15,
     color: "#555555",
-    lineHeight: 24,
-    paddingLeft: 10,
+    lineHeight: 22,
+  },
+  cardContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 18,
+    marginVertical: 8,
+    borderWidth: 1,
+    borderColor: "#E8E8E8",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  cardDanger: {
+    borderColor: "#FFE8E8",
+  },
+  cardLabel: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#2C2C2C",
+    marginBottom: 12,
+  },
+  cardItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 10,
+  },
+  cardIcon: {
+    marginRight: 12,
+    marginTop: 1,
+  },
+  cardText: {
+    flex: 1,
+    fontSize: 15,
+    color: "#444444",
+    lineHeight: 22,
+  },
+  bulletContainer: {
+    marginVertical: 6,
+    paddingLeft: 4,
+  },
+  bulletItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 10,
+  },
+  bulletDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: "#A0522D",
+    marginRight: 12,
+    marginTop: 8,
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 15,
+    color: "#444444",
+    lineHeight: 22,
   },
   footerContainer: {
     position: "absolute",
-    bottom: 20,
+    bottom: 24,
     left: 20,
     right: 20,
-    backgroundColor: "#FFFFFF",
     borderRadius: 24,
-    padding: 16,
+    overflow: "hidden",
     ...Platform.select({
       ios: {
         shadowColor: "#000",
         shadowOffset: {
           width: 0,
-          height: 6,
+          height: 8,
         },
         shadowOpacity: 0.15,
-        shadowRadius: 12,
+        shadowRadius: 16,
       },
       android: {
         elevation: 12,
@@ -320,15 +461,35 @@ const styles = StyleSheet.create({
     }),
   },
   helpButton: {
-    backgroundColor: "#A0522D",
-    borderRadius: 30,
+    borderRadius: 24,
+    overflow: "hidden",
+  },
+  helpButtonGradient: {
     paddingVertical: 16,
+    paddingHorizontal: 20,
+  },
+  helpButtonContent: {
+    alignItems: "flex-start",
+  },
+  helpButtonTop: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 12,
+    fontWeight: "500",
+    marginBottom: 4,
+  },
+  helpButtonRow: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
+    width: "100%",
   },
   helpButtonLabel: {
     color: "#FFFFFF",
-    fontWeight: "700",
     fontSize: 16,
+    fontWeight: "700",
+    flex: 1,
+  },
+  helpButtonIcon: {
+    marginLeft: 12,
   },
 });

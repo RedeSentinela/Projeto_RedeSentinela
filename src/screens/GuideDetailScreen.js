@@ -134,7 +134,7 @@ export default function GuideDetailScreen({ navigation, route }) {
       [
         { text: "Cancelar", style: "cancel" },
         { text: "Sim", onPress: () => {
-          console.log("Abrir chat ou ligação");
+          console.log("Abrir chat com especialista");
         }}
       ]
     );
@@ -161,18 +161,24 @@ export default function GuideDetailScreen({ navigation, route }) {
           );
         case "item":
           return (
-            <View key={index} style={styles.itemContainer}>
-              <Text style={styles.itemTitle}>{item.title}</Text>
+            <View key={index} style={styles.itemCard}>
+              <View style={styles.itemHeader}>
+                <Ionicons name="bulb-outline" size={22} color="#A0522D" />
+                <Text style={styles.itemTitle}>{item.title}</Text>
+              </View>
               <Text style={styles.itemDescription}>{item.description}</Text>
             </View>
           );
         case "checklist":
           return (
             <View key={index} style={styles.cardContainer}>
-              <Text style={styles.cardLabel}>✓ O que ajuda</Text>
+              <View style={styles.cardHeader}>
+                <Ionicons name="checkmark-circle" size={24} color="#2E7D32" />
+                <Text style={styles.cardLabel}>O que ajuda</Text>
+              </View>
               {item.items.map((text, i) => (
                 <View key={i} style={styles.cardItem}>
-                  <Ionicons name="checkmark-circle" size={22} color="#4CAF50" style={styles.cardIcon} />
+                  <Ionicons name="checkmark" size={18} color="#2E7D32" style={styles.cardIcon} />
                   <Text style={styles.cardText}>{text}</Text>
                 </View>
               ))}
@@ -181,11 +187,14 @@ export default function GuideDetailScreen({ navigation, route }) {
         case "xlist":
           return (
             <View key={index} style={[styles.cardContainer, styles.cardDanger]}>
-              <Text style={styles.cardLabel}>✗ O que evitar</Text>
+              <View style={styles.cardHeader}>
+                <Ionicons name="close-circle" size={24} color="#C62828" />
+                <Text style={[styles.cardLabel, styles.cardLabelDanger]}>O que evitar</Text>
+              </View>
               {item.items.map((text, i) => (
                 <View key={i} style={styles.cardItem}>
-                  <Ionicons name="close-circle" size={22} color="#E53935" style={styles.cardIcon} />
-                  <Text style={styles.cardText}>{text}</Text>
+                  <Ionicons name="close" size={18} color="#C62828" style={styles.cardIcon} />
+                  <Text style={[styles.cardText, styles.cardTextDanger]}>{text}</Text>
                 </View>
               ))}
             </View>
@@ -210,20 +219,17 @@ export default function GuideDetailScreen({ navigation, route }) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* HEADER */}
+        {/* HEADER SIMPLIFICADO */}
         <View style={styles.header}>
           <Pressable 
             onPress={() => navigation.goBack()}
             hitSlop={12}
             style={styles.backButton}
           >
-            <Ionicons name="arrow-back" size={24} color="#333333" />
+            <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
           </Pressable>
 
-          <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle}>SafeSpace</Text>
-            <Text style={styles.headerSubtitle}>Guía de Apoyo | Ajudando Amigas</Text>
-          </View>
+          <Text style={styles.headerTitle}>SafeSpace</Text>
 
           <View style={styles.placeholder} />
         </View>
@@ -243,25 +249,26 @@ export default function GuideDetailScreen({ navigation, route }) {
           {renderSections()}
         </ScrollView>
 
-        {/* BOTÃO FIXO */}
+        {/* BOTÃO FIXO - MAIS ELEGANTE */}
         <View style={styles.footerContainer}>
           <TouchableOpacity
             style={styles.helpButton}
             onPress={handleHelpPress}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
           >
             <LinearGradient
-              colors={["#A0522D", "#8B4513"]}
+              colors={["#8B5A3C", "#A0522D"]}
               style={styles.helpButtonGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
             >
               <View style={styles.helpButtonContent}>
-                <Text style={styles.helpButtonTop}>Precisa de apoio agora?</Text>
-                <View style={styles.helpButtonRow}>
-                  <Text style={styles.helpButtonLabel}>Falar com um especialista ou psicólogo</Text>
-                  <Ionicons name="arrow-forward" size={20} color="#FFF" style={styles.helpButtonIcon} />
+                <Ionicons name="chatbubble-ellipses-outline" size={20} color="#FFF" />
+                <View style={styles.helpButtonTexts}>
+                  <Text style={styles.helpButtonSub}>Precisa de apoio?</Text>
+                  <Text style={styles.helpButtonLabel}>Falar com um especialista</Text>
                 </View>
+                <Ionicons name="arrow-forward" size={20} color="#FFF" />
               </View>
             </LinearGradient>
           </TouchableOpacity>
@@ -274,11 +281,11 @@ export default function GuideDetailScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F5F6F8",
+    backgroundColor: "#F7F5F2",
   },
   container: {
     flex: 1,
-    backgroundColor: "#F5F6F8",
+    backgroundColor: "#F7F5F2",
   },
   header: {
     flexDirection: "row",
@@ -289,25 +296,16 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
-    borderBottomColor: "#EEEEEE",
+    borderBottomColor: "#E8E2DA",
   },
   backButton: {
     padding: 4,
   },
-  headerCenter: {
-    alignItems: "center",
-    flex: 1,
-  },
   headerTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "700",
-    color: "#333333",
-  },
-  headerSubtitle: {
-    fontSize: 11,
-    color: "#888888",
-    fontWeight: "500",
-    marginTop: 1,
+    color: "#1A1A1A",
+    letterSpacing: 0.3,
   },
   placeholder: {
     width: 40,
@@ -319,38 +317,41 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 24,
-    paddingBottom: 160,
+    paddingBottom: 140,
   },
   tagContainer: {
     backgroundColor: "#E8F0E3",
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
     borderRadius: 20,
     alignSelf: "flex-start",
-    marginBottom: 14,
+    marginBottom: 16,
   },
   tagText: {
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: "600",
     color: "#4A7C59",
+    letterSpacing: 0.3,
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: "700",
     color: "#1A1A1A",
-    marginBottom: 18,
-    lineHeight: 34,
+    marginBottom: 20,
+    lineHeight: 36,
   },
   paragraphText: {
     fontSize: 16,
     color: "#444444",
     lineHeight: 26,
     marginBottom: 16,
+    paddingLeft: 4,
   },
   divider: {
     height: 1,
-    backgroundColor: "#E8E8E8",
-    marginVertical: 24,
+    backgroundColor: "#E0D6CC",
+    marginVertical: 28,
+    opacity: 0.5,
   },
   subtitleText: {
     fontSize: 20,
@@ -358,47 +359,68 @@ const styles = StyleSheet.create({
     color: "#1A1A1A",
     marginBottom: 14,
     marginTop: 4,
+    paddingLeft: 4,
   },
-  itemContainer: {
-    marginBottom: 20,
+  itemCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 14,
+    padding: 18,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#F0F0F0",
+    borderColor: "#EDE8E2",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  itemHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
   },
   itemTitle: {
     fontSize: 17,
     fontWeight: "700",
     color: "#2C2C2C",
-    marginBottom: 4,
+    marginLeft: 10,
   },
   itemDescription: {
     fontSize: 15,
     color: "#555555",
     lineHeight: 22,
+    paddingLeft: 34,
   },
   cardContainer: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    borderRadius: 14,
     padding: 18,
-    marginVertical: 8,
+    marginVertical: 10,
     borderWidth: 1,
-    borderColor: "#E8E8E8",
+    borderColor: "#E8E2DA",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
   },
   cardDanger: {
-    borderColor: "#FFE8E8",
+    borderColor: "#FCE4E4",
+    backgroundColor: "#FFF8F8",
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 14,
   },
   cardLabel: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "700",
     color: "#2C2C2C",
-    marginBottom: 12,
+    marginLeft: 10,
+  },
+  cardLabelDanger: {
+    color: "#B71C1C",
   },
   cardItem: {
     flexDirection: "row",
@@ -407,13 +429,16 @@ const styles = StyleSheet.create({
   },
   cardIcon: {
     marginRight: 12,
-    marginTop: 1,
+    marginTop: 2,
   },
   cardText: {
     flex: 1,
     fontSize: 15,
     color: "#444444",
     lineHeight: 22,
+  },
+  cardTextDanger: {
+    color: "#5D2E2E",
   },
   bulletContainer: {
     marginVertical: 6,
@@ -422,15 +447,15 @@ const styles = StyleSheet.create({
   bulletItem: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: 10,
+    marginBottom: 12,
   },
   bulletDot: {
-    width: 7,
-    height: 7,
+    width: 8,
+    height: 8,
     borderRadius: 4,
     backgroundColor: "#A0522D",
-    marginRight: 12,
-    marginTop: 8,
+    marginRight: 14,
+    marginTop: 7,
   },
   bulletText: {
     flex: 1,
@@ -443,53 +468,39 @@ const styles = StyleSheet.create({
     bottom: 24,
     left: 20,
     right: 20,
-    borderRadius: 24,
+    borderRadius: 20,
     overflow: "hidden",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: {
-          width: 0,
-          height: 8,
-        },
-        shadowOpacity: 0.15,
-        shadowRadius: 16,
-      },
-      android: {
-        elevation: 12,
-      },
-    }),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 10,
   },
   helpButton: {
-    borderRadius: 24,
+    borderRadius: 20,
     overflow: "hidden",
   },
   helpButtonGradient: {
-    paddingVertical: 16,
+    paddingVertical: 14,
     paddingHorizontal: 20,
   },
   helpButtonContent: {
-    alignItems: "flex-start",
-  },
-  helpButtonTop: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 12,
-    fontWeight: "500",
-    marginBottom: 4,
-  },
-  helpButtonRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    width: "100%",
+  },
+  helpButtonTexts: {
+    flex: 1,
+    marginLeft: 14,
+    marginRight: 8,
+  },
+  helpButtonSub: {
+    color: "rgba(255,255,255,0.75)",
+    fontSize: 12,
+    fontWeight: "500",
   },
   helpButtonLabel: {
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "700",
-    flex: 1,
-  },
-  helpButtonIcon: {
-    marginLeft: 12,
   },
 });

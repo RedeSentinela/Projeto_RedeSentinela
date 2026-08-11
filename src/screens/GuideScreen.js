@@ -11,6 +11,7 @@ import {
   FlatList,
   Dimensions,
   TouchableOpacity,
+  useWindowDimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,35 +22,41 @@ const { width } = Dimensions.get("window");
 
 const FILTERS = ["Como Ajudar", "Me Proteger", "Sinais de Alerta"];
 
-// Dados do carrossel
+// ============================================================
+// CARROSSEL COM IMAGENS VIA URL (placeholders)
+// ============================================================
 const CAROUSEL_ITEMS = [
   {
     id: "1",
     title: "Aprenda a se proteger",
     subtitle: "Conhecimento é a melhor defesa",
-    image: require("../assets/guia.png"),
+    image: { uri: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&h=400&fit=crop&crop=center" },
   },
   {
     id: "2",
     title: "Conheça seus direitos",
     subtitle: "Informação é poder",
-    image: require("../assets/guia.png"),
+    image: { uri: "https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?w=800&h=400&fit=crop&crop=center" },
   },
   {
     id: "3",
     title: "Fale com quem entende",
     subtitle: "Apoio especializado 24h",
-    image: require("../assets/guia.png"),
+    image: { uri: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&h=400&fit=crop&crop=center" },
   },
 ];
 
 export default function GuideScreen({ navigation }) {
+  const { height } = useWindowDimensions();
+  const isSmallScreen = height < 700;
+  const carouselHeight = isSmallScreen ? 160 : 220;
+
   const [activeFilter, setActiveFilter] = useState(FILTERS[0]);
   const [activeSlide, setActiveSlide] = useState(0);
   const flatListRef = useRef(null);
   const intervalRef = useRef(null);
 
-  // Autoplay: mudar slide a cada 5 segundos
+  // Autoplay
   useEffect(() => {
     startAutoplay();
     return () => stopAutoplay();
@@ -73,7 +80,6 @@ export default function GuideScreen({ navigation }) {
   const goToSlide = (index) => {
     flatListRef.current?.scrollToIndex({ index, animated: true });
     setActiveSlide(index);
-    // Reinicia o autoplay ao interagir manualmente
     stopAutoplay();
     startAutoplay();
   };
@@ -94,6 +100,7 @@ export default function GuideScreen({ navigation }) {
     if (key === "Profile") navigation.navigate("Profile");
   }
 
+  // Conteúdos (guias)
   const contentData = [
     {
       id: 1,
@@ -176,18 +183,26 @@ export default function GuideScreen({ navigation }) {
     },
   ];
 
-  const renderCarouselItem = ({ item }) => (
-    <View style={styles.carouselSlide}>
-      <Image source={item.image} style={styles.carouselImage} resizeMode="cover" />
-      <LinearGradient
-        colors={["transparent", "rgba(26, 54, 54, 0.8)"]}
-        style={styles.carouselOverlay}
-      >
-        <Text style={styles.carouselTitle}>{item.title}</Text>
-        <Text style={styles.carouselSubtitle}>{item.subtitle}</Text>
-      </LinearGradient>
-    </View>
-  );
+  const renderCarouselItem = ({ item }) => {
+    // Estilo inline para altura dinâmica
+    const slideStyle = {
+      width: width - 2 * spacing.lg,
+      height: carouselHeight,
+      position: "relative",
+    };
+    return (
+      <View style={slideStyle}>
+        <Image source={item.image} style={styles.carouselImage} resizeMode="cover" />
+        <LinearGradient
+          colors={["transparent", "rgba(26, 54, 54, 0.8)"]}
+          style={styles.carouselOverlay}
+        >
+          <Text style={styles.carouselTitle}>{item.title}</Text>
+          <Text style={styles.carouselSubtitle}>{item.subtitle}</Text>
+        </LinearGradient>
+      </View>
+    );
+  };
 
   const onScroll = (event) => {
     const index = Math.round(event.nativeEvent.contentOffset.x / (width - 32));
@@ -214,7 +229,11 @@ export default function GuideScreen({ navigation }) {
         </LinearGradient>
 
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            // paddingBottom extra para não ficar atrás do BottomNav
+            { paddingBottom: 80 },
+          ]}
           showsVerticalScrollIndicator={true}
           style={styles.scrollView}
         >
@@ -236,7 +255,7 @@ export default function GuideScreen({ navigation }) {
               contentContainerStyle={{ paddingHorizontal: 16 }}
             />
 
-            {/* Setas de navegação */}
+            {/* Setas */}
             <TouchableOpacity style={styles.arrowLeft} onPress={prevSlide}>
               <Ionicons name="chevron-back" size={28} color="#FFFFFF" />
             </TouchableOpacity>
@@ -332,7 +351,7 @@ export default function GuideScreen({ navigation }) {
             </Pressable>
           ))}
 
-          {/* CARD DE AJUDA - Último elemento */}
+          {/* CARD DE AJUDA */}
           <LinearGradient
             colors={[colors.oliveDark, "#2D4A4A"]}
             style={styles.helpCard}
@@ -360,18 +379,18 @@ export default function GuideScreen({ navigation }) {
               </Pressable>
             </View>
           </LinearGradient>
-
-          {/* Espaço extra no final para não cortar o card */}
-          <View style={{ height: 20 }} />
         </ScrollView>
       </SafeAreaView>
 
+      {/* BOTTOM NAV - FIXO */}
       <BottomNav activeKey="Guide" onNavigate={handleNavigate} />
     </View>
   );
 }
 
-// Estilos (com ajustes na altura do carrossel e remoção do scrollHint)
+// ============================================================
+// ESTILOS
+// ============================================================
 const styles = StyleSheet.create({
   root: {
     flex: 1,
@@ -409,7 +428,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
-    paddingBottom: 40, // reduzido para o card finalizar bem
+    // paddingBottom será definido inline com 80
   },
   carouselWrapper: {
     marginBottom: spacing.md,
@@ -429,11 +448,8 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  carouselSlide: {
-    width: width - 2 * spacing.lg,
-    height: 220, // altura um pouco maior
-    position: "relative",
-  },
+  // Altura do slide será definida inline (dinâmica)
+  // carouselSlide removido – agora inline
   carouselImage: {
     width: "100%",
     height: "100%",
@@ -444,8 +460,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    padding: spacing.md,
-    paddingBottom: spacing.lg,
+    padding: spacing.sm,
+    paddingBottom: spacing.md,
   },
   carouselTitle: {
     color: "#FFFFFF",
@@ -669,5 +685,4 @@ const styles = StyleSheet.create({
     fontSize: 15,
     letterSpacing: 0.3,
   },
-  // scrollHint removido
 });

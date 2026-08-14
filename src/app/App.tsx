@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 
 import Toast from "../components/ui/Toast";
 
-import Loading from "../pages/loading/Loading";
-import Welcome from "../pages/welcome/Welcome";
-import Signup from "../pages/signup/Signup";
-import Login from "../pages/login/Login";
+import Loading from "../screens/loading/Loading";
+import Welcome from "../screens/welcome/Welcome";
+import Signup from "../screens/signup/Signup";
+import Login from "../screens/login/Login";
 
 export default function App() {
   const [page, setPage] = useState("loading");

@@ -13,6 +13,7 @@ import SafeReportScreen from "../screens/SafeReportScreen";
 
 
 
+
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {

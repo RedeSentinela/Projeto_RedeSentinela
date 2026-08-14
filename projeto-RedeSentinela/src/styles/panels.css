@@ -1,0 +1,40 @@
+.painel-verde {
+  padding: 35px 28px 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.painel-verde--bottom {
+  margin-top: auto;
+  text-align: center;
+}
+
+
+/* ---------- Card branco compartilhado (form area) ---------- */
+/* Usado tanto por Signup quanto Login */
+
+.auth-card {
+  background: var(--white);
+  padding: 28px 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  border-radius: 32px 32px 0 0;
+}
+
+.auth-card--top {
+  padding-top: 90px;
+  border-radius: 0 0 32px 32px;
+}
+
+.card-titulo {
+  font-family: var(--fonte-titulos);
+  font-weight: 600;
+  font-size: 22px;
+  text-align: center;
+  
+  color: var(--dark-olive);
+  margin-bottom: 25px;
+}

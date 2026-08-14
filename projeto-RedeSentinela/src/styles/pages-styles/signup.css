@@ -1,0 +1,16 @@
+.signup-pai {
+    flex: 1;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--dark-olive);
+}
+
+
+.painel-filho{
+    display: flex;
+}
+
+.signup-img{
+    height: 180px;
+}

@@ -1,0 +1,17 @@
+.welcome-img {
+    margin-top: -80px;
+}
+
+.welcome-pai {
+    flex: 1;
+    min-height: 100%;
+    background: var(--light-olive);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+    padding: 48px 32px;
+    gap: 30px;
+}

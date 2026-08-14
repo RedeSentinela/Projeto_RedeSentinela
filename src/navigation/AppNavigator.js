@@ -8,6 +8,8 @@ import SecurityScreens from "../screens/SecurityScreens";
 import ConnectScreen from "../screens/ConnectScreen";
 import GuideScreen from "../screens/GuideScreen";
 import GuideDetailScreen from "../screens/GuideDetailScreen";
+import ContactsScreen from "../screens/ContactsScreen";
+import SafeReportScreen from "../screens/SafeReportScreen";
 
 
 
@@ -27,7 +29,8 @@ export default function AppNavigator() {
         <Stack.Screen name="Connect" component={ConnectScreen} />
         <Stack.Screen name="Guide" component={GuideScreen} />
         <Stack.Screen name="GuideDetail" component={GuideDetailScreen} options={{ headerShown: false }} />
-
+        <Stack.Screen name="Contacts" component={ContactsScreen} />
+        <Stack.Screen name="SafeReport" component={SafeReportScreen} />
 
       </Stack.Navigator>
     </NavigationContainer>

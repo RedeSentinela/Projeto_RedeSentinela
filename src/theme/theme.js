@@ -12,6 +12,15 @@ export const colors = {
   dotInactive: "#D8D3C4",
   dotInactiveOnGreen: "rgba(255,255,255,0.4)",
   divider: "#E7E2D6",
+
+  // Paleta extra — telas "Meus Contatos" e "Registro Seguro"
+  creamBg: "#FAF9F5",       // fundo geral das telas (bege claro)
+  surfaceMuted: "#F2F1EA",  // cards neutros (ex: card "Precisa de ajuda agora?")
+  inputBg: "#F1EFE6",
+  avatarGreen: "#DCE9AE",
+  avatarPeach: "#FCEBD9",
+  dangerRed: "#C0392B",
+  dangerRedBg: "#F7DEDE",
 };
 
 export const typography = {

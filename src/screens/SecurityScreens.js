@@ -36,7 +36,6 @@ export default function SecurityScreens({ navigation }) {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Imagem ajustada - SEM fundo branco */}
           <Image
             source={require("../assets/denuncia.png")}
             style={styles.illustrationImage}
@@ -53,23 +52,32 @@ export default function SecurityScreens({ navigation }) {
 
       <View style={styles.sheet}>
         <View style={styles.cardsRow}>
-          <FeatureCard
-            icon="person-outline"
-            title="Contatos"
-            subtitle="Alertas rápidos"
-          />
-          <FeatureCard
-            icon="megaphone-outline"
-            title="Denúncia Segura"
-            subtitle="Canais oficiais"
-          />
+          <Pressable
+            style={styles.cardPressable}
+            onPress={() => navigation.navigate("Contacts")}
+          >
+            <FeatureCard
+              icon="person-outline"
+              title="Contatos"
+              subtitle="Alertas rápidos"
+            />
+          </Pressable>
+          <Pressable
+            style={styles.cardPressable}
+            onPress={() => navigation.navigate("SafeReport")}
+          >
+            <FeatureCard
+              icon="megaphone-outline"
+              title="Denúncia Segura"
+              subtitle="Canais oficiais"
+            />
+          </Pressable>
         </View>
 
         <View style={styles.dotsWrapper}>
           <ProgressDots total={4} activeIndex={2} />
         </View>
 
-        {/* Botão menor */}
         <View style={styles.buttonWrapper}>
           <PrimaryButton
             label="Próximo passo"
@@ -140,15 +148,13 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.md,
   },
+  cardPressable: { flex: 1 },
   dotsWrapper: { alignItems: "center", marginBottom: spacing.md },
-  
-  // Botão menor
   buttonWrapper: {
     width: "55%",
     maxWidth: 260,
     alignSelf: "center",
   },
-  
   backBtn: { alignItems: "center", marginTop: spacing.md },
   backLabel: { fontSize: 14, fontWeight: "600", color: colors.textDark },
 });

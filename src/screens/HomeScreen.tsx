@@ -2,8 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, SafeAreaView } from "react-native";
 import { colors, typography, spacing } from "../theme/theme";
 
-// Placeholder simples — substitua pela tela real do app
-// (home, dashboard, lista de apoio etc.)
+// tel modelo simples — substituir pela tela real do app
 export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.root}>

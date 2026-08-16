@@ -21,7 +21,7 @@ export const colors = {
   avatarPeach: "#FCEBD9",
   dangerRed: "#C0392B",
   dangerRedBg: "#F7DEDE",
-};
+} as const;
 
 export const typography = {
   h1: { fontSize: 24, fontWeight: "700", color: colors.textDark },
@@ -29,7 +29,7 @@ export const typography = {
   body: { fontSize: 14, fontWeight: "400", color: colors.textBody, lineHeight: 20 },
   label: { fontSize: 11, fontWeight: "700", letterSpacing: 1, color: colors.textMuted },
   brand: { fontSize: 16, fontWeight: "700", color: colors.brownAccent },
-};
+} as const;
 
 export const spacing = {
   xs: 4,
@@ -37,4 +37,4 @@ export const spacing = {
   md: 16,
   lg: 24,
   xl: 32,
-};
+} as const;

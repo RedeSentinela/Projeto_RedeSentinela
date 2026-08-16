@@ -14,8 +14,23 @@ import { Ionicons } from "@expo/vector-icons";
 import BottomNav from "../components/BottomNav";
 import { colors, typography, spacing } from "../theme/theme";
 
+// Tipagem simples e local, sem precisar de arquivo separado
+type ContactsScreenProps = {
+  navigation: {
+    navigate: (screen: string, params?: object) => void;
+  };
+};
+
+type Contact = {
+  id: string;
+  name: string;
+  relation: string;
+  phone: string;
+  avatarBg: string;
+};
+
 // Dados de exemplo — substitua pela integração real (API / storage local)
-const INITIAL_CONTACTS = [
+const INITIAL_CONTACTS: Contact[] = [
   {
     id: "1",
     name: "Ana Silva",
@@ -39,15 +54,15 @@ const INITIAL_CONTACTS = [
   },
 ];
 
-export default function ContactsScreen({ navigation }) {
-  const [contacts, setContacts] = useState(INITIAL_CONTACTS);
-  const [query, setQuery] = useState("");
+export default function ContactsScreen({ navigation }: ContactsScreenProps) {
+  const [contacts, setContacts] = useState<Contact[]>(INITIAL_CONTACTS);
+  const [query, setQuery] = useState<string>("");
 
   const filteredContacts = contacts.filter((c) =>
     c.name.toLowerCase().includes(query.trim().toLowerCase())
   );
 
-  function handleNavigate(key) {
+  function handleNavigate(key: string) {
     if (key === "Home") navigation.navigate("Home");
     if (key === "Guide") navigation.navigate("Guide");
     if (key === "Report") navigation.navigate("SafeReport");
@@ -81,12 +96,12 @@ export default function ContactsScreen({ navigation }) {
     Alert.alert("Adicionar novo", "Abra o formulário para cadastrar um novo contato de confiança.");
   }
 
-  function handleEdit(contact) {
+  function handleEdit(contact: Contact) {
     // TODO: abrir formulário de edição pré-preenchido
     Alert.alert("Editar contato", `Editar dados de ${contact.name}.`);
   }
 
-  function handleDelete(contact) {
+  function handleDelete(contact: Contact) {
     Alert.alert(
       "Remover contato",
       `Deseja remover ${contact.name} do seu círculo de confiança?`,

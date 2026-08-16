@@ -14,8 +14,16 @@ import ProgressDots from "../components/ProgressDots";
 import FeatureCard from "../components/FeatureCard";
 import { colors, typography, spacing } from "../theme/theme";
 
+// Tipagem simples e local, sem precisar de arquivo separado
+type SecurityScreensProps = {
+  navigation: {
+    navigate: (screen: string, params?: object) => void;
+    goBack: () => void;
+  };
+};
+
 // Tela 3 do onboarding: "Denúncia e Segurança" (passo 3 de 4)
-export default function SecurityScreens({ navigation }) {
+export default function SecurityScreens({ navigation }: SecurityScreensProps) {
   return (
     <View style={styles.root}>
       <SafeAreaView style={styles.safeTop}>

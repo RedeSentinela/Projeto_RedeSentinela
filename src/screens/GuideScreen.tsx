@@ -12,6 +12,9 @@ import {
   Dimensions,
   TouchableOpacity,
   useWindowDimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+  TextStyle,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,10 +25,36 @@ const { width } = Dimensions.get("window");
 
 const FILTERS = ["Como Ajudar", "Me Proteger", "Sinais de Alerta"];
 
+// Tipagem simples e local, sem precisar de arquivo separado
+type GuideScreenProps = {
+  navigation: {
+    navigate: (screen: string, params?: object) => void;
+    goBack: () => void;
+  };
+};
+
+type CarouselItem = {
+  id: string;
+  title: string;
+  subtitle: string;
+  image: { uri: string };
+};
+
+type ContentItem = {
+  id: number;
+  title: string;
+  type: string;
+  duration: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  iconBg: string;
+  iconColor: string;
+  onPress?: () => void;
+};
+
 // ============================================================
 // CARROSSEL COM IMAGENS VIA URL (placeholders)
 // ============================================================
-const CAROUSEL_ITEMS = [
+const CAROUSEL_ITEMS: CarouselItem[] = [
   {
     id: "1",
     title: "Aprenda a se proteger",
@@ -46,15 +75,15 @@ const CAROUSEL_ITEMS = [
   },
 ];
 
-export default function GuideScreen({ navigation }) {
+export default function GuideScreen({ navigation }: GuideScreenProps) {
   const { height } = useWindowDimensions();
   const isSmallScreen = height < 700;
   const carouselHeight = isSmallScreen ? 160 : 220;
 
-  const [activeFilter, setActiveFilter] = useState(FILTERS[0]);
-  const [activeSlide, setActiveSlide] = useState(0);
-  const flatListRef = useRef(null);
-  const intervalRef = useRef(null);
+  const [activeFilter, setActiveFilter] = useState<string>(FILTERS[0]);
+  const [activeSlide, setActiveSlide] = useState<number>(0);
+  const flatListRef = useRef<FlatList<CarouselItem>>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Autoplay
   useEffect(() => {
@@ -77,7 +106,7 @@ export default function GuideScreen({ navigation }) {
     }
   };
 
-  const goToSlide = (index) => {
+  const goToSlide = (index: number) => {
     flatListRef.current?.scrollToIndex({ index, animated: true });
     setActiveSlide(index);
     stopAutoplay();
@@ -94,14 +123,14 @@ export default function GuideScreen({ navigation }) {
     goToSlide(prev);
   };
 
-  function handleNavigate(key) {
+  function handleNavigate(key: string) {
     if (key === "Home") navigation.navigate("Home");
     if (key === "Report") navigation.navigate("Security");
     if (key === "Profile") navigation.navigate("Profile");
   }
 
   // Conteúdos (guias)
-  const contentData = [
+  const contentData: ContentItem[] = [
     {
       id: 1,
       title: "Como ajudar uma amiga em risco",
@@ -183,12 +212,12 @@ export default function GuideScreen({ navigation }) {
     },
   ];
 
-  const renderCarouselItem = ({ item }) => {
+  const renderCarouselItem = ({ item }: { item: CarouselItem }) => {
     // Estilo inline para altura dinâmica
     const slideStyle = {
       width: width - 2 * spacing.lg,
       height: carouselHeight,
-      position: "relative",
+      position: "relative" as const,
     };
     return (
       <View style={slideStyle}>
@@ -204,7 +233,7 @@ export default function GuideScreen({ navigation }) {
     );
   };
 
-  const onScroll = (event) => {
+  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const index = Math.round(event.nativeEvent.contentOffset.x / (width - 32));
     setActiveSlide(index);
   };
@@ -394,7 +423,7 @@ export default function GuideScreen({ navigation }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.backgroundLight,
+    backgroundColor: colors.creamBg,
   },
   flex: {
     flex: 1,
@@ -428,7 +457,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
-    // paddingBottom será definido inline com 80
   },
   carouselWrapper: {
     marginBottom: spacing.md,
@@ -448,8 +476,6 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  // Altura do slide será definida inline (dinâmica)
-  // carouselSlide removido – agora inline
   carouselImage: {
     width: "100%",
     height: "100%",
@@ -517,14 +543,14 @@ const styles = StyleSheet.create({
     ...typography.h1,
     fontSize: 22,
     marginBottom: spacing.xs,
-  },
+  } as TextStyle,
   subtitle: {
     ...typography.body,
     fontSize: 14,
-    color: colors.textSecondary,
+    color: colors.textBody,
     lineHeight: 20,
     marginBottom: spacing.md,
-  },
+  } as TextStyle,
   filtersRow: {
     marginBottom: spacing.md,
   },
@@ -535,7 +561,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.cardWhite,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.divider,
   },
   filterChipActive: {
     backgroundColor: colors.oliveDark,
@@ -544,7 +570,7 @@ const styles = StyleSheet.create({
   filterText: {
     fontSize: 13,
     fontWeight: "500",
-    color: colors.textSecondary,
+    color: colors.textBody,
   },
   filterTextActive: {
     color: "#FFFFFF",
@@ -572,7 +598,7 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     marginBottom: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.divider,
     ...Platform.select({
       ios: {
         shadowColor: "#000",
@@ -605,9 +631,9 @@ const styles = StyleSheet.create({
     ...typography.body,
     fontSize: 14,
     fontWeight: "600",
-    color: colors.textPrimary,
+    color: colors.textDark,
     marginBottom: 2,
-  },
+  } as TextStyle,
   contentMeta: {
     flexDirection: "row",
     alignItems: "center",
@@ -619,7 +645,7 @@ const styles = StyleSheet.create({
   },
   contentDot: {
     marginHorizontal: 6,
-    color: colors.borderLight,
+    color: colors.textMuted,
   },
   contentDuration: {
     fontSize: 11,

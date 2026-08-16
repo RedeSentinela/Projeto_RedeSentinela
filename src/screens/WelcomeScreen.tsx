@@ -14,7 +14,14 @@ import PrimaryButton from "../components/PrimaryButton";
 import ProgressDots from "../components/ProgressDots";
 import { colors, typography, spacing } from "../theme/theme";
 
-export default function WelcomeScreen({ navigation }) {
+// Tipagem simples e local, sem precisar de arquivo separado
+type WelcomeScreenProps = {
+  navigation: {
+    navigate: (screen: string, params?: object) => void;
+  };
+};
+
+export default function WelcomeScreen({ navigation }: WelcomeScreenProps) {
   const { width, height } = useWindowDimensions();
 
   // Ajusta o tamanho da imagem de acordo com a tela

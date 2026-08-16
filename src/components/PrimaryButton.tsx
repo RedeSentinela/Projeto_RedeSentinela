@@ -3,7 +3,13 @@ import { Pressable, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../theme/theme";
 
-export default function PrimaryButton({ label, onPress, icon = "arrow-forward" }) {
+type PrimaryButtonProps = {
+  label: string;
+  onPress?: () => void;
+  icon?: keyof typeof Ionicons.glyphMap | null;
+};
+
+export default function PrimaryButton({ label, onPress, icon = "arrow-forward" }: PrimaryButtonProps) {
   return (
     <Pressable
       onPress={onPress}

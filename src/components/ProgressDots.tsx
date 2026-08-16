@@ -2,7 +2,13 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import { colors } from "../theme/theme";
 
-export default function ProgressDots({ total = 3, activeIndex = 0, onGreen = false }) {
+type ProgressDotsProps = {
+  total?: number;
+  activeIndex?: number;
+  onGreen?: boolean;
+};
+
+export default function ProgressDots({ total = 3, activeIndex = 0, onGreen = false }: ProgressDotsProps) {
   return (
     <View style={styles.row}>
       {Array.from({ length: total }).map((_, i) => {

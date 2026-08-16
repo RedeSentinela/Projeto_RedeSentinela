@@ -7,16 +7,23 @@ import {
   SafeAreaView,
   Platform,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import PrimaryButton from "../components/PrimaryButton";
 import ProgressDots from "../components/ProgressDots";
 import FeatureCard from "../components/FeatureCard";
-import { Image } from "react-native";
 import { colors, typography, spacing } from "../theme/theme";
 
+// Tipagem simples e local, sem precisar de arquivo separado
+type ConnectScreenProps = {
+  navigation: {
+    navigate: (screen: string, params?: object) => void;
+  };
+};
+
 // Tela 4 (final) do onboarding: "Conecte-se com Apoio"
-export default function ConnectScreen({ navigation }) {
+export default function ConnectScreen({ navigation }: ConnectScreenProps) {
   return (
     <View style={styles.root}>
       <LinearGradient
@@ -46,27 +53,26 @@ export default function ConnectScreen({ navigation }) {
             <ProgressDots total={4} activeIndex={3} />
           </View>
 
-          <Text style={styles.title}>Conecte-se com Apoio</Text>
-          <Text style={styles.subtitle}>
+          <Text style={styles.title as any}>Conecte-se com Apoio</Text>
+          <Text style={styles.subtitle as any}>
             Encontre ONGs, hospitais especializados e profissionais prontos
             para ajudar você, tudo de forma rápida, segura e próxima à sua
             localização.
           </Text>
 
           <View style={styles.cardsRow}>
-            <FeatureCard 
-              icon="share-social-outline" 
-              title="Rede ampla" 
-              subtitle="Profissionais e instituições de confiança" 
+            <FeatureCard
+              icon="share-social-outline"
+              title="Rede ampla"
+              subtitle="Profissionais e instituições de confiança"
             />
-            <FeatureCard 
-              icon="navigate-outline" 
-              title="Ongs e hospitais" 
-              subtitle="Apoio localizado" 
+            <FeatureCard
+              icon="navigate-outline"
+              title="Ongs e hospitais"
+              subtitle="Apoio localizado"
             />
           </View>
 
-          {/* Botão marrom menor */}
           <View style={styles.buttonWrapper}>
             <TouchableOpacity
               style={styles.button}
@@ -100,20 +106,20 @@ export default function ConnectScreen({ navigation }) {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.oliveLight },
   gradient: { flex: 1.15 },
-  safeTop: { 
-    flex: 1, 
+  safeTop: {
+    flex: 1,
     paddingHorizontal: spacing.lg,
     paddingTop: Platform.OS === "web" ? spacing.md : 0,
   },
   topBar: {
     alignItems: "flex-end",
     paddingTop: Platform.OS === "web" ? spacing.md : 0,
-    paddingRight: spacing.sm, // Puxa o "Pular" mais para dentro
+    paddingRight: spacing.sm,
   },
-  skip: { 
-    color: "rgba(255,255,255,0.85)", 
-    fontSize: 14, 
-    fontWeight: "500" 
+  skip: {
+    color: "rgba(255,255,255,0.85)",
+    fontSize: 14,
+    fontWeight: "500",
   },
   illustrationCard: {
     flex: 1,
@@ -137,9 +143,9 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
     alignItems: "center",
   },
-  dotsWrapper: { 
-    alignItems: "center", 
-    marginBottom: spacing.md 
+  dotsWrapper: {
+    alignItems: "center",
+    marginBottom: spacing.md,
   },
   title: {
     ...typography.h1,
@@ -158,23 +164,17 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     width: "100%",
   },
-  
-  // Botão menor
   buttonWrapper: {
     width: "55%",
     maxWidth: 260,
     alignSelf: "center",
   },
-  
   button: {
     width: "100%",
     borderRadius: 30,
     overflow: "hidden",
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,
@@ -196,13 +196,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: spacing.sm,
   },
-  loginText: { 
-    fontSize: 13, 
-    color: colors.textMuted 
+  loginText: {
+    fontSize: 13,
+    color: colors.textMuted,
   },
-  loginLink: { 
-    fontSize: 13, 
-    color: colors.brownAccent, 
-    fontWeight: "700" 
+  loginLink: {
+    fontSize: 13,
+    color: colors.brownAccent,
+    fontWeight: "700",
   },
 });

@@ -13,10 +13,35 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
-export default function GuideDetailScreen({ navigation, route }) {
+// Tipagem simples e local, sem precisar de arquivo separado
+type GuideDetailScreenProps = {
+  navigation: {
+    goBack: () => void;
+  };
+  route?: {
+    params?: {
+      title?: string;
+      type?: string;
+      sections?: Section[];
+      content?: string; // presente no GuideScreen original, mantido por segurança
+    };
+  };
+};
+
+// União de todos os formatos possíveis de seção do conteúdo
+type Section =
+  | { type: "paragraph"; text: string }
+  | { type: "divider" }
+  | { type: "subtitle"; text: string }
+  | { type: "item"; title: string; description: string }
+  | { type: "checklist"; items: string[] }
+  | { type: "xlist"; items: string[] }
+  | { type: "bullet"; items: string[] };
+
+export default function GuideDetailScreen({ navigation, route }: GuideDetailScreenProps) {
   const params = route?.params || {};
 
-  const defaultContent = {
+  const defaultContent: { title: string; type: string; sections: Section[] } = {
     title: "Como ajudar uma amiga em risco",
     type: "Guia de Apoio",
     sections: [
@@ -142,7 +167,7 @@ export default function GuideDetailScreen({ navigation, route }) {
 
   const renderSections = () => {
     return sections.map((item, index) => {
-      switch(item.type) {
+      switch (item.type) {
         case "paragraph":
           return (
             <Text key={index} style={styles.paragraphText}>
@@ -221,7 +246,7 @@ export default function GuideDetailScreen({ navigation, route }) {
       <View style={styles.container}>
         {/* HEADER SIMPLIFICADO */}
         <View style={styles.header}>
-          <Pressable 
+          <Pressable
             onPress={() => navigation.goBack()}
             hitSlop={12}
             style={styles.backButton}

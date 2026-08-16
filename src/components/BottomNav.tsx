@@ -3,15 +3,28 @@ import { View, Text, Pressable, StyleSheet, Platform, Modal } from "react-native
 import { Ionicons } from "@expo/vector-icons";
 import { colors, spacing } from "../theme/theme";
 
-const NAV_ITEMS = [
+type NavItem = {
+  key: string;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  isCentral?: boolean;
+};
+
+const NAV_ITEMS: NavItem[] = [
   { key: "Home", label: "Home", icon: "home-outline" },
   { key: "Guide", label: "Ajuda", icon: "help-circle-outline" },
   { key: "Report", label: "Denúncia", icon: "add", isCentral: true },
   { key: "Profile", label: "Profile", icon: "person-outline" },
 ];
 
+// Tipagem compartilhada pelas duas versões (nativa e web) e pelo componente exportado
+type BottomNavProps = {
+  activeKey: string;
+  onNavigate: (key: string) => void;
+};
+
 // --- Versão nativa (app): barra fixa embaixo, com botão central em destaque ---
-function NativeTabBar({ activeKey, onNavigate }) {
+function NativeTabBar({ activeKey, onNavigate }: BottomNavProps) {
   return (
     <View style={styles.tabBar}>
       {NAV_ITEMS.map((item) => {
@@ -51,8 +64,8 @@ function NativeTabBar({ activeKey, onNavigate }) {
 }
 
 // --- Versão web: botão de menu sanduíche que abre uma lista de navegação ---
-function WebHamburgerMenu({ activeKey, onNavigate }) {
-  const [open, setOpen] = useState(false);
+function WebHamburgerMenu({ activeKey, onNavigate }: BottomNavProps) {
+  const [open, setOpen] = useState<boolean>(false);
 
   return (
     <>
@@ -92,7 +105,7 @@ function WebHamburgerMenu({ activeKey, onNavigate }) {
   );
 }
 
-export default function BottomNav({ activeKey, onNavigate }) {
+export default function BottomNav({ activeKey, onNavigate }: BottomNavProps) {
   if (Platform.OS === "web") {
     return <WebHamburgerMenu activeKey={activeKey} onNavigate={onNavigate} />;
   }

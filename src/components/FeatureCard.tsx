@@ -3,7 +3,13 @@ import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, typography, spacing } from "../theme/theme";
 
-export default function FeatureCard({ icon, title, subtitle }) {
+type FeatureCardProps = {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  subtitle?: string;
+};
+
+export default function FeatureCard({ icon, title, subtitle }: FeatureCardProps) {
   return (
     <View style={styles.card}>
       <View style={styles.iconWrapper}>

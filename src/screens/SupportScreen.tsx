@@ -13,7 +13,15 @@ import PrimaryButton from "../components/PrimaryButton";
 import ProgressDots from "../components/ProgressDots";
 import { colors, typography, spacing } from "../theme/theme";
 
-export default function SupportScreen({ navigation }) {
+// Tipagem simples e local, sem precisar de arquivo separado
+type SupportScreenProps = {
+  navigation: {
+    navigate: (screen: string, params?: object) => void;
+    goBack: () => void;
+  };
+};
+
+export default function SupportScreen({ navigation }: SupportScreenProps) {
   const { width, height } = useWindowDimensions();
 
   const isSmallScreen = height < 700;
@@ -257,8 +265,8 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingHorizontal: 20,
-    paddingTop: 16, // Aumentado
-    paddingBottom: 20, // Aumentado
+    paddingTop: 16,
+    paddingBottom: 20,
     shadowColor: "#000",
     shadowOpacity: 0.08,
     shadowRadius: 12,
@@ -267,8 +275,7 @@ const styles = StyleSheet.create({
       height: -4,
     },
     elevation: 6,
-    // Ocupa mais espaço
-    flex: 0.45, // Aumentado de 0.35 para 0.45
+    flex: 0.45,
   },
 
   sheetSmall: {
@@ -278,7 +285,7 @@ const styles = StyleSheet.create({
   },
 
   infoCard: {
-    height: 48, // Aumentado um pouco
+    height: 48,
     width: "75%",
     maxWidth: 320,
     flexDirection: "row",
@@ -287,7 +294,7 @@ const styles = StyleSheet.create({
     borderColor: colors.divider,
     borderRadius: 12,
     paddingHorizontal: 12,
-    marginBottom: 10, // Aumentado
+    marginBottom: 10,
     backgroundColor: "#FAFAF5",
     alignSelf: "center",
   },
@@ -347,9 +354,9 @@ const styles = StyleSheet.create({
 
   dotsWrapper: {
     alignItems: "center",
-    height: 20, // Aumentado
+    height: 20,
     justifyContent: "center",
-    marginBottom: 8, // Aumentado
+    marginBottom: 8,
   },
 
   buttonWrapper: {
@@ -360,14 +367,14 @@ const styles = StyleSheet.create({
   },
 
   backBtn: {
-    height: 24, // Aumentado
+    height: 24,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 4,
   },
 
   backLabel: {
-    fontSize: 12, // Aumentado
+    fontSize: 12,
     fontWeight: "600",
     color: colors.textDark,
   },

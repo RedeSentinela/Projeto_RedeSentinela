@@ -3,13 +3,24 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, spacing } from "../theme/theme";
 
-const TAG_COLORS = {
+type TagName = "Artigo" | "Vídeo" | "Guia Rápido";
+
+const TAG_COLORS: Record<TagName, { bg: string; text: string }> = {
   Artigo: { bg: "#EFEAD9", text: colors.brownAccentDark },
   Vídeo: { bg: "#DCE7D3", text: colors.oliveDark },
   "Guia Rápido": { bg: "#F3D9C4", text: colors.brownAccentDark },
 };
 
-export default function ContentCard({ icon, iconBg, title, tag, duration, onPress }) {
+type ContentCardProps = {
+  icon: keyof typeof Ionicons.glyphMap;
+  iconBg?: string;
+  title: string;
+  tag: TagName;
+  duration: string;
+  onPress?: () => void;
+};
+
+export default function ContentCard({ icon, iconBg, title, tag, duration, onPress }: ContentCardProps) {
   const tagStyle = TAG_COLORS[tag] || TAG_COLORS.Artigo;
 
   return (

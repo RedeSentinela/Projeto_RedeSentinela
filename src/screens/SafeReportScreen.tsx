@@ -15,12 +15,19 @@ import BottomNav from "../components/BottomNav";
 import PrimaryButton from "../components/PrimaryButton";
 import { colors, typography, spacing } from "../theme/theme";
 
-export default function SafeReportScreen({ navigation }) {
-  const [description, setDescription] = useState("");
-  const [location, setLocation] = useState("");
-  const [attachEvidence, setAttachEvidence] = useState(false);
+// Tipagem simples e local, sem precisar de arquivo separado
+type SafeReportScreenProps = {
+  navigation: {
+    navigate: (screen: string, params?: object) => void;
+  };
+};
 
-  function handleNavigate(key) {
+export default function SafeReportScreen({ navigation }: SafeReportScreenProps) {
+  const [description, setDescription] = useState<string>("");
+  const [location, setLocation] = useState<string>("");
+  const [attachEvidence, setAttachEvidence] = useState<boolean>(false);
+
+  function handleNavigate(key: string) {
     if (key === "Home") navigation.navigate("Home");
     if (key === "Guide") navigation.navigate("Guide");
     if (key === "Report") navigation.navigate("SafeReport");

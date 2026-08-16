@@ -2,7 +2,13 @@ import React from "react";
 import { Pressable, Text, StyleSheet } from "react-native";
 import { colors, spacing } from "../theme/theme";
 
-export default function FilterChip({ label, active, onPress }) {
+type FilterChipProps = {
+  label: string;
+  active?: boolean;
+  onPress?: () => void;
+};
+
+export default function FilterChip({ label, active, onPress }: FilterChipProps) {
   return (
     <Pressable
       style={[styles.chip, active && styles.chipActive]}

@@ -1,21 +1,12 @@
-// Importação para rotas funcionarem
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRedirectAfterDelay } from '../hooks/useRedirectAfterDelay';
 
 import logo from '../assets/images/logo.png'
 
 import '../styles/pages-styles/loading.css'
 
+
 export default function LoadingPage() {
-  const navigate = useNavigate() // função "navigate" criada
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      navigate("/welcome")
-    }, 1500) // tempo que loading fica visível
-
-    return() => clearTimeout(timer)
-  }, [navigate]) // faz a navegação para a página desejada
+  useRedirectAfterDelay("/welcome", 1500)
 
   return (
     <div className="loading-pai">

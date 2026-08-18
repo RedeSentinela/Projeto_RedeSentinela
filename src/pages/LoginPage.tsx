@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useForm } from '../hooks/useForm'
 
 import waveIMG from '../assets/images/waveIMG.png'
 
@@ -10,24 +11,21 @@ import IconMail from '../components/icons/IconMail'
 
 import '../styles/pages-styles/login.css'
 import '../styles/panels.css'
+import { useTogglePassword } from '../hooks/useTogglePassword'
 
-export interface LoginFormValues {
+export type LoginFormValues = {
     email: string;
     senha: string;
 }
 
 export default function LoginPage() {
     const navigate = useNavigate();
-    const [showPassword, setShowPassword] = useState(false); // mostrar/esconder senha
+    const { showPassword, toggle } = useTogglePassword(); // mostrar/esconder senha
 
-    const [form, setForm] = useState<LoginFormValues>({ // guarda valor colocado
+    const { form, updateField, formValido } = useForm<LoginFormValues>({ // guarda valor colocado
         email: "",
         senha: "",
     });
-
-    const formValido = 
-    form.email.trim() && 
-    form.senha.trim() !== "";
 
     // função para o botão de "criar conta"
     function onSubmit() {
@@ -36,17 +34,6 @@ export default function LoginPage() {
         // validar email/senha antes de navegar
 
         navigate("/home") // depois de criar a conta, entra no app
-    }
-
-
-    // função que gera outras funções; evita escrever uma função de onChange pra cada campo
-    function updateField(campo: keyof LoginFormValues) {
-        return function (e: React.ChangeEvent<HTMLInputElement>) {
-            setForm((formAnterior) => ({
-                ...formAnterior, // copia todos os campos que já existiam
-                [campo]: e.target.value, // sobrescreve só o campo que mudou
-            }))
-        }
     }
 
     return (
@@ -72,11 +59,10 @@ export default function LoginPage() {
                     placeholder='••••••••••'
                     value={form.senha}
                     onChange={updateField("senha")}
-
                     rightSlot={
                         <button
                             type='button'
-                            onClick={() => setShowPassword((prev) => !prev)}
+                            onClick={toggle}
                             aria-label='Mostrar senha'
                         >
                             <IconEye off={!showPassword} />

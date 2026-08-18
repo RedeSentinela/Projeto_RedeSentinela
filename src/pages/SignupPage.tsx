@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useForm } from '../hooks/useForm'
+import { useTogglePassword } from '../hooks/useTogglePassword'
 
 import signupIMG from '../assets/images/signupIMG.png'
 
@@ -12,7 +13,8 @@ import IconEye from '../components/icons/IconEye'
 import '../styles/pages-styles/signup.css'
 import '../styles/panels.css'
 
-export interface SignupFormValues { // formato dos dados do form
+
+export type SignupFormValues = { // formato dos dados do form
     email: string;
     nome: string;
     senha: string;
@@ -20,18 +22,13 @@ export interface SignupFormValues { // formato dos dados do form
 
 export default function SignupPage() {
     const navigate = useNavigate();
-    const [showPassword, setShowPassword] = useState(false); // mostrar/esconder senha
+    const { showPassword, toggle } = useTogglePassword(); // mostrar/esconder senha
 
-    const [form, setForm] = useState<SignupFormValues>({ // guarda valor colocado
+    const { form, updateField, formValido } = useForm<SignupFormValues>({ // guarda valor colocado
         email: "",
         nome: "",
         senha: "",
     });
-
-    const formValido = 
-    form.email.trim() !== "" && 
-    form.nome.trim() !== "" &&
-    form.senha.trim() !== "";
 
     // função para o botão de "criar conta"
     function onSubmit(dados: SignupFormValues) {
@@ -40,18 +37,6 @@ export default function SignupPage() {
 
         navigate("/home") // depois de criar a conta, entra no app
     }
-
-    // função que gera outras funções; evita escrever uma função de onChange pra cada campo
-    function updateField(campo: keyof SignupFormValues) {
-        return function (e: React.ChangeEvent<HTMLInputElement>) {
-            setForm((formAnterior) => ({
-                ...formAnterior, // copia todos os campos que já existiam
-                [campo]: e.target.value, // sobrescreve só o campo que mudou
-            }))
-        }
-    }
-
-
 
 
     return (
@@ -105,11 +90,10 @@ export default function SignupPage() {
                     placeholder='••••••••••'
                     value={form.senha}
                     onChange={updateField("senha")}
-
                     rightSlot={
                         <button
                             type='button'
-                            onClick={() => setShowPassword((prev) => !prev)}
+                            onClick={toggle}
                             aria-label='Mostrar senha'
                         >
 

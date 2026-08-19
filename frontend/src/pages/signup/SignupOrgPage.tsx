@@ -75,9 +75,9 @@ export default function SignupOrgPage() {
     }
 
     function onSubmit() {
-        if (!formValido) return;
-
+        if (!stepValido()) return;
         console.log("Cadastrando organização:", form);
+
         // TODO: chamada real pra API
 
         navigate("/home");
@@ -107,7 +107,7 @@ export default function SignupOrgPage() {
                     <div className="steps-linha-fundo" />
                     <div
                         className="steps-linha-progresso"
-                        style={{ width: `${((step - 1) / (ETAPAS.length - 1)) * 100}%` }}
+                        style={{ width: `${((step - 1) / (ETAPAS.length - 1)) * (2 / 3) * 100}%` }}
                     />
 
                     <div className="steps-grid">
@@ -229,7 +229,7 @@ export default function SignupOrgPage() {
                         <button
                             className="btn btn--block"
                             onClick={onSubmit}
-                            disabled={!formValido}
+                            disabled={!stepValido()}
                         >
                             Finalizar cadastro
                         </button>

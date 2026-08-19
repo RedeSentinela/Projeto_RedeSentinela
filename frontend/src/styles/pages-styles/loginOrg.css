@@ -1,0 +1,99 @@
+.login-org-pai {
+    min-height: 100vh;
+    background-color: #f6f1e7;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2.5rem 1.5rem;
+}
+
+/* -------- topo com selo + textos -------- */
+
+.login-org-topo {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    max-width: 320px;
+}
+
+.login-org-topo .org-selo {
+    background-color: #eae6d8;
+    color: #3d4a2a;
+    margin: 0 auto 0.75rem;
+}
+
+.login-org-topo .org-selo-titulo {
+    color: #2f3821;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+.login-org-topo .subtitulo {
+    color: #2f3821;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin: 0 0 0.25rem;
+}
+
+.login-org-topo .subtitulo-pequeno {
+    color: #6b6b5f;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* -------- card do formulário -------- */
+
+.login-org-pai .auth-card--top {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 1.75rem;
+    width: 100%;
+    max-width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+/* -------- botão de autenticar -------- */
+
+.login-org-pai .btn--block {
+    background-color: #2f3821; /* verde escuro, como o botão "Autenticar acesso" do print */
+    color: #f6f1e7;
+    border: none;
+    border-radius: 10px;
+    padding: 0.9rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.login-org-pai .btn--block:hover:not(:disabled) {
+    background-color: #3d4a2a;
+}
+
+.login-org-pai .btn--block:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* -------- link de credenciamento -------- */
+
+.login-org-pai .switch-text {
+    text-align: center;
+    color: #6b6b5f;
+    font-size: 0.8rem;
+    margin-top: 0.75rem;
+}
+
+.login-org-pai .switch-link {
+    background: none;
+    border: none;
+    color: #2f3821;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0 0 0 0.3rem;
+    text-decoration: underline;
+}

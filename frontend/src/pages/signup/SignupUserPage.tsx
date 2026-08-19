@@ -14,7 +14,7 @@ import '../../styles/pages-styles/signupUser.css'
 import '../../styles/panels.css'
 
 
-export type SignupFormValues = { // formato dos dados do form
+export type SignupUserFormValues = { // formato dos dados do form
     email: string;
     nome: string;
     senha: string;
@@ -24,17 +24,17 @@ export default function SignupUser() {
     const navigate = useNavigate();
     const { showPassword, toggle } = useTogglePassword(); // mostrar/esconder senha
 
-    const { form, updateField, formValido } = useForm<SignupFormValues>({ // guarda valor colocado
+    const { form, updateField, formValido } = useForm<SignupUserFormValues>({ // guarda valor colocado
         email: "",
         nome: "",
         senha: "",
     });
 
     // função para o botão de "criar conta"
-    function onSubmit(dados: SignupFormValues) {
+    function onSubmit(dados: SignupUserFormValues) {
         console.log("Cadastrando:", dados)
         // colocar chamada real pra API/banco de cadastro
-
+ 
         navigate("/home") // depois de criar a conta, entra no app
     }
 

@@ -12,16 +12,16 @@ import '../../styles/pages-styles/loginUser.css'
 import '../../styles/panels.css'
 import { useTogglePassword } from '../../hooks/useTogglePassword'
 
-export type LoginFormValues = {
+export type LoginUserFormValues = {
     email: string;
     senha: string;
 }
 
-export default function LoginUser() {
+export default function LoginUserPage() {
     const navigate = useNavigate();
     const { showPassword, toggle } = useTogglePassword(); // mostrar/esconder senha
 
-    const { form, updateField, formValido } = useForm<LoginFormValues>({ // guarda valor colocado
+    const { form, updateField, formValido } = useForm<LoginUserFormValues>({ // guarda valor colocado
         email: "",
         senha: "",
     });

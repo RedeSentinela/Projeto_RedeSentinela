@@ -11,7 +11,7 @@ export default function WelcomePage() {
             <p className='subtitulo subtitulo-branco'> Texto de motivação e/ou breve explicação sobre a motivação por trás
                 desse aplicativo.
             </p>
-            <button className='btn' onClick={() => navigate("/cadastro")}>
+            <button className='btn' onClick={() => navigate("/user-type")}>
                 Próximo passo
             </button>
         </div>

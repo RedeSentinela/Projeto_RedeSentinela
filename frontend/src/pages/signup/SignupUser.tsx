@@ -1,17 +1,17 @@
 import { useNavigate } from 'react-router-dom'
-import { useForm } from '../hooks/useForm'
-import { useTogglePassword } from '../hooks/useTogglePassword'
+import { useForm } from '../../hooks/useForm'
+import { useTogglePassword } from '../../hooks/useTogglePassword'
 
-import signupIMG from '../assets/images/signupIMG.png'
+import signupIMG from '../../assets/images/signupIMG.png'
 
-import Field from '../components/ui/Field'
-import IconMail from '../components/icons/IconMail'
-import IconUser from '../components/icons/IconUser'
-import IconLock from '../components/icons/IconLock'
-import IconEye from '../components/icons/IconEye'
+import Field from '../../components/ui/Field'
+import IconMail from '../../components/icons/IconMail'
+import IconUser from '../../components/icons/IconUser'
+import IconLock from '../../components/icons/IconLock'
+import IconEye from '../../components/icons/IconEye'
 
-import '../styles/pages-styles/signup.css'
-import '../styles/panels.css'
+import '../../styles/pages-styles/signupUser.css'
+import '../../styles/panels.css'
 
 
 export type SignupFormValues = { // formato dos dados do form
@@ -20,7 +20,7 @@ export type SignupFormValues = { // formato dos dados do form
     senha: string;
 }
 
-export default function SignupPage() {
+export default function SignupUser() {
     const navigate = useNavigate();
     const { showPassword, toggle } = useTogglePassword(); // mostrar/esconder senha
 
@@ -112,7 +112,7 @@ export default function SignupPage() {
                 <p className='switch-text'>
                     Você já tem uma conta?
                     <br /> Então vamos
-                    <button className='switch-link' onClick={() => navigate("/login")}>
+                    <button className='switch-link' onClick={() => navigate("/login/usuario")}>
                         fazer login!
                     </button>
                 </p>

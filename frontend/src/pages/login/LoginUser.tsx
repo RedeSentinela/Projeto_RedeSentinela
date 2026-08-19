@@ -1,24 +1,23 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useForm } from '../hooks/useForm'
+import { useForm } from '../../hooks/useForm'
 
-import waveIMG from '../assets/images/waveIMG.png'
+import waveIMG from '../../assets/images/waveIMG.png'
 
-import Field from '../components/ui/Field'
-import IconEye from '../components/icons/IconEye'
-import IconLock from '../components/icons/IconLock'
-import IconMail from '../components/icons/IconMail'
+import Field from '../../components/ui/Field'
+import IconEye from '../../components/icons/IconEye'
+import IconLock from '../../components/icons/IconLock'
+import IconMail from '../../components/icons/IconMail'
 
-import '../styles/pages-styles/login.css'
-import '../styles/panels.css'
-import { useTogglePassword } from '../hooks/useTogglePassword'
+import '../../styles/pages-styles/loginUser.css'
+import '../../styles/panels.css'
+import { useTogglePassword } from '../../hooks/useTogglePassword'
 
 export type LoginFormValues = {
     email: string;
     senha: string;
 }
 
-export default function LoginPage() {
+export default function LoginUser() {
     const navigate = useNavigate();
     const { showPassword, toggle } = useTogglePassword(); // mostrar/esconder senha
 
@@ -80,7 +79,7 @@ export default function LoginPage() {
                 <p className='switch-text'>
                     Você não tem uma conta?
                     <br /> Então vamos
-                    <button className='switch-link' onClick={() => navigate("/cadastro")}>
+                    <button className='switch-link' onClick={() => navigate("/cadastro/usuario")}>
                         criar uma nova conta!
                     </button>
                 </p>

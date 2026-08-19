@@ -145,7 +145,7 @@ export default function GuideScreen({ navigation }: GuideScreenProps) {
       title: "Como ajudar uma amiga em risco",
       type: "Artigo",
       duration: "5 min de leitura",
-      image: { uri: "https://images.unsplash.com/photo-1516585427167-9f4af9627e6c?w=200&h=200&fit=crop&crop=center" },
+      image: { uri: "https://images.unsplash.com/photo-1516585427167-9f4af9627e6c?w=200&h=200&fit=crop&crop=center" }, //imagens de base
       onPress: () =>
         navigation.navigate("GuideDetail", {
           title: "Como ajudar uma amiga em risco",

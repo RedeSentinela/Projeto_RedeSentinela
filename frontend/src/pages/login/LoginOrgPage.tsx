@@ -2,13 +2,14 @@ import { useNavigate } from 'react-router-dom'
 import { useForm } from '../../hooks/useForm'
 import { useTogglePassword } from '../../hooks/useTogglePassword'
 
-import '../../styles/pages-styles/loginOrg.css'
 import '../../styles/panels.css'
+import '../../styles/pages-styles/loginOrg.css'
 
 import Field from '../../components/ui/Field'
 import IconFileText from '../../components/icons/IconFileText'
 import IconLock from '../../components/icons/IconLock'
 import IconEye from '../../components/icons/IconEye'
+import IconBuilding from '../../components/icons/IconBuilding'
 
 export type LoginOrgFormValues = {
     cnpj: string;
@@ -32,18 +33,19 @@ export default function LoginOrgPage() {
 
     return (
         <div className="login-org-pai">
-            <div className="login-org-topo">
+            <div className="painel-verde">
                 <div className="org-selo">
-                    <IconFileText />
+                    <IconBuilding width={52} height={52} />
                 </div>
-                <h2 className="org-selo-titulo">Portal de gestão do parceiro</h2>
-                <p className="subtitulo">Acesso restrito</p>
+                <h2 className="titulo">Portal de gestão do parceiro</h2>
+                <p className="subtitulo subtitulo-branco subtitulo--left">Acesso restrito:</p>
                 <p className="subtitulo-pequeno">
                     Credenciais administrativas obrigatórias para acesso ao painel de controle.
                 </p>
             </div>
 
-            <div className="auth-card auth-card--top">
+            <div className="auth-card auth-login">
+                <h1 className='card-titulo'>Para continuar, informe...</h1>
                 <Field
                     icon={<IconFileText />}
                     label="CNPJ da instituição:"
@@ -76,12 +78,14 @@ export default function LoginOrgPage() {
                 </button>
 
                 <p className="switch-text">
-                    Nova instituição?
+                    Nova instituição? <br />
                     <button className="switch-link" onClick={() => navigate('/cadastro/organizacao')}>
                         Solicitar credenciamento
                     </button>
                 </p>
             </div>
+
+            
         </div>
     )
 }

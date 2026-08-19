@@ -36,7 +36,7 @@ export default function UserTypeSelectionPage() {
                     onClick={() => navigate('/cadastro/organizacao')}
                 >
                     <span className="tipo-conta-icone">
-                        <IconBuilding />
+                        <IconBuilding width={48} height={48} />
                     </span>
                     <span className="tipo-conta-textos">
                         <span className="tipo-conta-card-titulo">Organização</span>

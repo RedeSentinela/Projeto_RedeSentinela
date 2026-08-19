@@ -25,6 +25,9 @@ const { width } = Dimensions.get("window");
 
 const FILTERS = ["Como Ajudar", "Me Proteger", "Sinais de Alerta"];
 
+// Quantos cards de conteúdo aparecem antes de expandir
+const VISIBLE_COUNT = 4;
+
 // Tipagem simples e local, sem precisar de arquivo separado
 type GuideScreenProps = {
   navigation: {
@@ -45,43 +48,49 @@ type ContentItem = {
   title: string;
   type: string;
   duration: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  iconBg: string;
-  iconColor: string;
+  image: { uri: string };
   onPress?: () => void;
 };
 
+// Cores das pílulas de tag (Artigo / Vídeo / Guia Rápido)
+const TAG_COLORS: Record<string, { bg: string; text: string }> = {
+  Artigo: { bg: "#E8F0E3", text: "#4A7C59" },
+  Vídeo: { bg: "#F5E6D8", text: "#B8860B" },
+  "Guia Rápido": { bg: "#F2EFE5", text: "#A0522D" },
+};
+
 // ============================================================
-// CARROSSEL COM IMAGENS VIA URL (placeholders)
+// CARROSSEL — fotos mais alinhadas ao tema de apoio/acolhimento
 // ============================================================
 const CAROUSEL_ITEMS: CarouselItem[] = [
   {
     id: "1",
     title: "Aprenda a se proteger",
     subtitle: "Conhecimento é a melhor defesa",
-    image: { uri: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&h=400&fit=crop&crop=center" },
+    image: { uri: "https://images.unsplash.com/photo-1516585427167-9f4af9627e6c?w=800&h=450&fit=crop&crop=center" },
   },
   {
     id: "2",
     title: "Conheça seus direitos",
     subtitle: "Informação é poder",
-    image: { uri: "https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?w=800&h=400&fit=crop&crop=center" },
+    image: { uri: "https://images.unsplash.com/photo-1521791055366-0d553872125f?w=800&h=450&fit=crop&crop=center" },
   },
   {
     id: "3",
     title: "Fale com quem entende",
     subtitle: "Apoio especializado 24h",
-    image: { uri: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&h=400&fit=crop&crop=center" },
+    image: { uri: "https://images.unsplash.com/photo-1573164713988-8665fc963095?w=800&h=450&fit=crop&crop=center" },
   },
 ];
 
 export default function GuideScreen({ navigation }: GuideScreenProps) {
   const { height } = useWindowDimensions();
   const isSmallScreen = height < 700;
-  const carouselHeight = isSmallScreen ? 160 : 220;
+  const carouselHeight = isSmallScreen ? 150 : 190;
 
   const [activeFilter, setActiveFilter] = useState<string>(FILTERS[0]);
   const [activeSlide, setActiveSlide] = useState<number>(0);
+  const [showAllContent, setShowAllContent] = useState<boolean>(false);
   const flatListRef = useRef<FlatList<CarouselItem>>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -129,16 +138,14 @@ export default function GuideScreen({ navigation }: GuideScreenProps) {
     if (key === "Profile") navigation.navigate("Profile");
   }
 
-  // Conteúdos (guias)
+  // Conteúdos (guias) — fotos temáticas (apoio, segurança, acolhimento)
   const contentData: ContentItem[] = [
     {
       id: 1,
       title: "Como ajudar uma amiga em risco",
       type: "Artigo",
       duration: "5 min de leitura",
-      icon: "hand-left-outline",
-      iconBg: "#E8F0E3",
-      iconColor: "#4A7C59",
+      image: { uri: "https://images.unsplash.com/photo-1516585427167-9f4af9627e6c?w=200&h=200&fit=crop&crop=center" },
       onPress: () =>
         navigation.navigate("GuideDetail", {
           title: "Como ajudar uma amiga em risco",
@@ -152,68 +159,56 @@ export default function GuideScreen({ navigation }: GuideScreenProps) {
       title: "Guia de segurança digital",
       type: "Vídeo",
       duration: "12 min",
-      icon: "shield-checkmark-outline",
-      iconBg: "#F5E6D8",
-      iconColor: "#B8860B",
+      image: { uri: "https://images.unsplash.com/photo-1591343395082-e120087004b4?w=200&h=200&fit=crop&crop=center" },
     },
     {
       id: 3,
       title: "Ciclo da violência: como identificar",
       type: "Guia Rápido",
       duration: "8 min de leitura",
-      icon: "heart-outline",
-      iconBg: "#F2EFE5",
-      iconColor: "#A0522D",
+      image: { uri: "https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=200&h=200&fit=crop&crop=center" },
     },
     {
       id: 4,
       title: "Direitos da mulher: o que você precisa saber",
       type: "Artigo",
       duration: "10 min de leitura",
-      icon: "document-text-outline",
-      iconBg: "#E3F0F7",
-      iconColor: "#2C7A9E",
+      image: { uri: "https://images.unsplash.com/photo-1521791055366-0d553872125f?w=200&h=200&fit=crop&crop=center" },
     },
     {
       id: 5,
       title: "Como reconhecer relacionamentos abusivos",
       type: "Vídeo",
       duration: "15 min",
-      icon: "alert-circle-outline",
-      iconBg: "#FDE8E8",
-      iconColor: "#C0392B",
+      image: { uri: "https://images.unsplash.com/photo-1573164713988-8665fc963095?w=200&h=200&fit=crop&crop=center" },
     },
     {
       id: 6,
       title: "Onde buscar ajuda: guia de serviços",
       type: "Guia Rápido",
       duration: "6 min de leitura",
-      icon: "location-outline",
-      iconBg: "#F0F0E8",
-      iconColor: "#6B8E23",
+      image: { uri: "https://images.unsplash.com/photo-1584515933487-779824d29309?w=200&h=200&fit=crop&crop=center" },
     },
     {
       id: 7,
       title: "Autocuidado e saúde mental",
       type: "Artigo",
       duration: "7 min de leitura",
-      icon: "flower-outline",
-      iconBg: "#F3E8F0",
-      iconColor: "#8E4585",
+      image: { uri: "https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=200&h=200&fit=crop&crop=center" },
     },
     {
       id: 8,
       title: "Como denunciar de forma segura",
       type: "Vídeo",
       duration: "9 min",
-      icon: "megaphone-outline",
-      iconBg: "#FFF3E0",
-      iconColor: "#E67E22",
+      image: { uri: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=200&h=200&fit=crop&crop=center" },
     },
   ];
 
+  // Mostra só os 4 primeiros, ou todos, dependendo do estado
+  const visibleContent = showAllContent ? contentData : contentData.slice(0, VISIBLE_COUNT);
+
   const renderCarouselItem = ({ item }: { item: CarouselItem }) => {
-    // Estilo inline para altura dinâmica
     const slideStyle = {
       width: width - 2 * spacing.lg,
       height: carouselHeight,
@@ -222,13 +217,6 @@ export default function GuideScreen({ navigation }: GuideScreenProps) {
     return (
       <View style={slideStyle}>
         <Image source={item.image} style={styles.carouselImage} resizeMode="cover" />
-        <LinearGradient
-          colors={["transparent", "rgba(26, 54, 54, 0.8)"]}
-          style={styles.carouselOverlay}
-        >
-          <Text style={styles.carouselTitle}>{item.title}</Text>
-          <Text style={styles.carouselSubtitle}>{item.subtitle}</Text>
-        </LinearGradient>
       </View>
     );
   };
@@ -260,7 +248,6 @@ export default function GuideScreen({ navigation }: GuideScreenProps) {
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            // paddingBottom extra para não ficar atrás do BottomNav
             { paddingBottom: 80 },
           ]}
           showsVerticalScrollIndicator={true}
@@ -286,10 +273,10 @@ export default function GuideScreen({ navigation }: GuideScreenProps) {
 
             {/* Setas */}
             <TouchableOpacity style={styles.arrowLeft} onPress={prevSlide}>
-              <Ionicons name="chevron-back" size={28} color="#FFFFFF" />
+              <Ionicons name="chevron-back" size={26} color="#FFFFFF" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.arrowRight} onPress={nextSlide}>
-              <Ionicons name="chevron-forward" size={28} color="#FFFFFF" />
+              <Ionicons name="chevron-forward" size={26} color="#FFFFFF" />
             </TouchableOpacity>
 
             {/* Dots */}
@@ -344,41 +331,42 @@ export default function GuideScreen({ navigation }: GuideScreenProps) {
           {/* SEÇÃO CONTEÚDOS */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionLabel}>CONTEÚDOS RECOMENDADOS</Text>
-            <Pressable>
-              <Text style={styles.seeAll}>Ver todos</Text>
+            <Pressable onPress={() => setShowAllContent((prev) => !prev)}>
+              <Text style={styles.seeAll}>
+                {showAllContent ? "Ver menos" : "Ver +"}
+              </Text>
             </Pressable>
           </View>
 
           {/* CARDS */}
-          {contentData.map((item) => (
-            <Pressable
-              key={item.id}
-              style={styles.contentCard}
-              onPress={item.onPress}
-            >
-              <View style={styles.cardContent}>
-                <View
-                  style={[
-                    styles.iconContainer,
-                    { backgroundColor: item.iconBg },
-                  ]}
-                >
-                  <Ionicons name={item.icon} size={24} color={item.iconColor} />
-                </View>
-                <View style={styles.contentInfo}>
-                  <Text style={styles.contentTitle} numberOfLines={2}>
-                    {item.title}
-                  </Text>
-                  <View style={styles.contentMeta}>
-                    <Text style={styles.contentTag}>{item.type}</Text>
-                    <Text style={styles.contentDot}>•</Text>
-                    <Text style={styles.contentDuration}>{item.duration}</Text>
+          {visibleContent.map((item) => {
+            const tagStyle = TAG_COLORS[item.type] || TAG_COLORS.Artigo;
+            return (
+              <Pressable
+                key={item.id}
+                style={styles.contentCard}
+                onPress={item.onPress}
+              >
+                <View style={styles.cardContent}>
+                  <Image source={item.image} style={styles.iconContainer} resizeMode="cover" />
+                  <View style={styles.contentInfo}>
+                    <Text style={styles.contentTitle} numberOfLines={2}>
+                      {item.title}
+                    </Text>
+                    <View style={styles.contentMeta}>
+                      <View style={[styles.tagPill, { backgroundColor: tagStyle.bg }]}>
+                        <Text style={[styles.contentTag, { color: tagStyle.text }]}>
+                          {item.type}
+                        </Text>
+                      </View>
+                      <Text style={styles.contentDuration}>{item.duration}</Text>
+                    </View>
                   </View>
+                  <Ionicons name="chevron-forward" size={20} color="#CCCCCC" />
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#CCCCCC" />
-              </View>
-            </Pressable>
-          ))}
+              </Pressable>
+            );
+          })}
 
           {/* CARD DE AJUDA */}
           <LinearGradient
@@ -393,18 +381,11 @@ export default function GuideScreen({ navigation }: GuideScreenProps) {
               <Text style={styles.helpSubtitle}>
                 Nossos canais de atendimento estão disponíveis 24h para você.
               </Text>
-              <Pressable style={styles.helpButton} onPress={() => {}}>
-                <LinearGradient
-                  colors={[colors.brownAccent, "#7A3D22"]}
-                  style={styles.helpButtonGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  <Ionicons name="call-outline" size={20} color="#FFF" />
-                  <Text style={styles.helpButtonLabel}>
-                    Falar com uma atendente
-                  </Text>
-                </LinearGradient>
+              <Pressable style={styles.helpButtonWhite} onPress={() => {}}>
+                <Ionicons name="call-outline" size={20} color={colors.brownAccent} />
+                <Text style={styles.helpButtonLabelBrown}>
+                  Entre em contato com uma ONG
+                </Text>
               </Pressable>
             </View>
           </LinearGradient>
@@ -481,63 +462,42 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: "#E8EDE5",
   },
-  carouselOverlay: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: spacing.sm,
-    paddingBottom: spacing.md,
-  },
-  carouselTitle: {
-    color: "#FFFFFF",
-    fontSize: 20,
-    fontWeight: "700",
-    textShadowColor: "rgba(0,0,0,0.3)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  carouselSubtitle: {
-    color: "rgba(255,255,255,0.9)",
-    fontSize: 14,
-    fontWeight: "400",
-  },
   arrowLeft: {
     position: "absolute",
     left: 8,
     top: "50%",
-    transform: [{ translateY: -20 }],
+    transform: [{ translateY: -18 }],
     backgroundColor: "rgba(0,0,0,0.4)",
-    borderRadius: 20,
-    padding: 6,
+    borderRadius: 18,
+    padding: 5,
     zIndex: 10,
   },
   arrowRight: {
     position: "absolute",
     right: 8,
     top: "50%",
-    transform: [{ translateY: -20 }],
+    transform: [{ translateY: -18 }],
     backgroundColor: "rgba(0,0,0,0.4)",
-    borderRadius: 20,
-    padding: 6,
+    borderRadius: 18,
+    padding: 5,
     zIndex: 10,
   },
   dotsContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    paddingVertical: 10,
+    paddingVertical: 8,
     backgroundColor: "rgba(255,255,255,0.95)",
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
     backgroundColor: "#D0D0D0",
     marginHorizontal: 4,
   },
   dotActive: {
     backgroundColor: colors.oliveDark,
-    width: 20,
+    width: 18,
   },
   title: {
     ...typography.h1,
@@ -558,14 +518,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 30,
-    backgroundColor: colors.cardWhite,
+    backgroundColor: colors.mintBg,
     marginRight: 8,
-    borderWidth: 1,
-    borderColor: colors.divider,
   },
   filterChipActive: {
     backgroundColor: colors.oliveDark,
-    borderColor: colors.oliveDark,
   },
   filterText: {
     fontSize: 13,
@@ -619,9 +576,8 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
     marginRight: spacing.sm,
+    backgroundColor: colors.mintBg,
   },
   contentInfo: {
     flex: 1,
@@ -632,20 +588,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: colors.textDark,
-    marginBottom: 2,
+    marginBottom: 4,
   } as TextStyle,
   contentMeta: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 8,
+  },
+  tagPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 20,
   },
   contentTag: {
     fontSize: 11,
-    color: colors.textMuted,
-    fontWeight: "500",
-  },
-  contentDot: {
-    marginHorizontal: 6,
-    color: colors.textMuted,
+    fontWeight: "700",
   },
   contentDuration: {
     fontSize: 11,
@@ -693,20 +650,18 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: spacing.sm,
   },
-  helpButton: {
-    width: "100%",
-    borderRadius: 30,
-    overflow: "hidden",
-  },
-  helpButtonGradient: {
+  helpButtonWhite: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 30,
+    width: "100%",
     paddingVertical: 14,
     gap: 8,
   },
-  helpButtonLabel: {
-    color: "#FFFFFF",
+  helpButtonLabelBrown: {
+    color: colors.brownAccent,
     fontWeight: "700",
     fontSize: 15,
     letterSpacing: 0.3,

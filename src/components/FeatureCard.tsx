@@ -43,6 +43,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: spacing.sm,
   },
+  
   title: {
     ...typography.h2,
     fontSize: 15,

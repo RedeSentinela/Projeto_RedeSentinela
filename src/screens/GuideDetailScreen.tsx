@@ -9,6 +9,7 @@ import {
   Platform,
   Alert,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -22,6 +23,8 @@ type GuideDetailScreenProps = {
     params?: {
       title?: string;
       type?: string;
+      category?: string;
+      image?: string;
       sections?: Section[];
       content?: string; // presente no GuideScreen original, mantido por segurança
     };
@@ -32,8 +35,8 @@ type GuideDetailScreenProps = {
 type Section =
   | { type: "paragraph"; text: string }
   | { type: "divider" }
-  | { type: "subtitle"; text: string }
-  | { type: "item"; title: string; description: string }
+  | { type: "subtitle"; text: string; icon?: keyof typeof Ionicons.glyphMap; color?: string }
+  | { type: "item"; title: string; description: string; icon?: keyof typeof Ionicons.glyphMap; iconColor?: string }
   | { type: "checklist"; items: string[] }
   | { type: "xlist"; items: string[] }
   | { type: "bullet"; items: string[] };
@@ -41,9 +44,17 @@ type Section =
 export default function GuideDetailScreen({ navigation, route }: GuideDetailScreenProps) {
   const params = route?.params || {};
 
-  const defaultContent: { title: string; type: string; sections: Section[] } = {
+  const defaultContent: {
+    title: string;
+    type: string;
+    category: string;
+    image: string;
+    sections: Section[];
+  } = {
     title: "Como ajudar uma amiga em risco",
     type: "Guia de Apoio",
+    category: "Ajudando Amigas",
+    image: "https://images.unsplash.com/photo-1516585427167-9f4af9627e6c?w=800&h=500&fit=crop&crop=center",
     sections: [
       {
         type: "paragraph",
@@ -54,7 +65,9 @@ export default function GuideDetailScreen({ navigation, route }: GuideDetailScre
       },
       {
         type: "subtitle",
-        text: "Como identificar os sinais"
+        text: "Como identificar os sinais",
+        icon: "eye-outline",
+        color: "#4A7C59"
       },
       {
         type: "item",
@@ -81,7 +94,9 @@ export default function GuideDetailScreen({ navigation, route }: GuideDetailScre
       },
       {
         type: "subtitle",
-        text: "O que dizer (e o que não dizer)"
+        text: "O que dizer (e o que não dizer)",
+        icon: "mail-outline",
+        color: "#7A4A1E"
       },
       {
         type: "paragraph",
@@ -108,28 +123,39 @@ export default function GuideDetailScreen({ navigation, route }: GuideDetailScre
       },
       {
         type: "subtitle",
-        text: "Como oferecer ajuda prática"
+        text: "Como oferecer ajuda prática",
+        icon: "hand-left-outline",
+        color: "#4A7C59"
       },
       {
-        type: "paragraph",
-        text: "Além do apoio emocional, você pode oferecer ajuda concreta:"
+        type: "item",
+        title: "Porto Seguro",
+        description: "Ofereça sua casa para ela guardar documentos importantes ou uma mochila de emergência com itens essenciais.",
+        icon: "key-outline",
+        iconColor: "#B8860B"
       },
       {
-        type: "bullet",
-        items: [
-          "Oferecer um lugar seguro para ela ficar",
-          "Ajudar a criar um plano de segurança",
-          "Acompanhar em consultas médicas ou jurídicas",
-          "Manter contato frequente para mostrar que ela não está sozinha",
-          "Guardar documentos importantes em um local seguro"
-        ]
+        type: "item",
+        title: "Canal de Comunicação",
+        description: "Estabeleça uma palavra-código ou um sinal discreto para que ela possa te avisar se estiver em perigo imediato.",
+        icon: "call-outline",
+        iconColor: "#2E7D32"
+      },
+      {
+        type: "item",
+        title: "Pesquisa Segura",
+        description: "Ofereça-se para pesquisar serviços de suporte, delegacias ou ONGs usando seu próprio dispositivo, para não deixar rastros no dela.",
+        icon: "search-outline",
+        iconColor: "#2C7A9E"
       },
       {
         type: "divider"
       },
       {
         type: "subtitle",
-        text: "Cuidando de você também"
+        text: "Cuidando de você também",
+        icon: "heart-outline",
+        color: "#4A7C59"
       },
       {
         type: "paragraph",
@@ -150,6 +176,8 @@ export default function GuideDetailScreen({ navigation, route }: GuideDetailScre
 
   const title = params.title || defaultContent.title;
   const type = params.type || defaultContent.type;
+  const category = params.category || defaultContent.category;
+  const image = params.image || defaultContent.image;
   const sections = params.sections || defaultContent.sections;
 
   const handleHelpPress = () => {
@@ -180,16 +208,33 @@ export default function GuideDetailScreen({ navigation, route }: GuideDetailScre
           );
         case "subtitle":
           return (
-            <Text key={index} style={styles.subtitleText}>
-              {item.text}
-            </Text>
+            <View key={index} style={styles.subtitleRow}>
+              <View style={[styles.subtitleBadge, { backgroundColor: item.color || "#4A7C59" }]}>
+                <Ionicons name={item.icon || "sparkles-outline"} size={16} color="#FFFFFF" />
+              </View>
+              <Text style={styles.subtitleText}>{item.text}</Text>
+            </View>
           );
         case "item":
+          // Variante com ícone (ex: "Como oferecer ajuda prática")
+          if (item.icon) {
+            return (
+              <View key={index} style={styles.iconItemCard}>
+                <View style={styles.iconItemIconWrap}>
+                  <Ionicons name={item.icon} size={20} color={item.iconColor || "#4A7C59"} />
+                </View>
+                <View style={styles.iconItemTextWrap}>
+                  <Text style={styles.iconItemTitle}>{item.title}</Text>
+                  <Text style={styles.iconItemDescription}>{item.description}</Text>
+                </View>
+              </View>
+            );
+          }
+          // Variante com etiqueta (ex: "Como identificar os sinais")
           return (
             <View key={index} style={styles.itemCard}>
-              <View style={styles.itemHeader}>
-                <Ionicons name="bulb-outline" size={22} color="#A0522D" />
-                <Text style={styles.itemTitle}>{item.title}</Text>
+              <View style={styles.itemLabel}>
+                <Text style={styles.itemLabelText}>{item.title}</Text>
               </View>
               <Text style={styles.itemDescription}>{item.description}</Text>
             </View>
@@ -198,13 +243,13 @@ export default function GuideDetailScreen({ navigation, route }: GuideDetailScre
           return (
             <View key={index} style={styles.cardContainer}>
               <View style={styles.cardHeader}>
-                <Ionicons name="checkmark-circle" size={24} color="#2E7D32" />
+                <Ionicons name="checkmark-circle-outline" size={22} color="#2E7D32" />
                 <Text style={styles.cardLabel}>O que ajuda</Text>
               </View>
               {item.items.map((text, i) => (
                 <View key={i} style={styles.cardItem}>
-                  <Ionicons name="checkmark" size={18} color="#2E7D32" style={styles.cardIcon} />
-                  <Text style={styles.cardText}>{text}</Text>
+                  <View style={[styles.cardDot, { backgroundColor: "#2E7D32" }]} />
+                  <Text style={styles.cardText}>"{text}"</Text>
                 </View>
               ))}
             </View>
@@ -213,13 +258,13 @@ export default function GuideDetailScreen({ navigation, route }: GuideDetailScre
           return (
             <View key={index} style={[styles.cardContainer, styles.cardDanger]}>
               <View style={styles.cardHeader}>
-                <Ionicons name="close-circle" size={24} color="#C62828" />
+                <Ionicons name="close-circle-outline" size={22} color="#C62828" />
                 <Text style={[styles.cardLabel, styles.cardLabelDanger]}>O que evitar</Text>
               </View>
               {item.items.map((text, i) => (
                 <View key={i} style={styles.cardItem}>
-                  <Ionicons name="close" size={18} color="#C62828" style={styles.cardIcon} />
-                  <Text style={[styles.cardText, styles.cardTextDanger]}>{text}</Text>
+                  <View style={[styles.cardDot, { backgroundColor: "#C62828" }]} />
+                  <Text style={[styles.cardText, styles.cardTextDanger]}>"{text}"</Text>
                 </View>
               ))}
             </View>
@@ -244,7 +289,7 @@ export default function GuideDetailScreen({ navigation, route }: GuideDetailScre
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* HEADER SIMPLIFICADO */}
+        {/* HEADER */}
         <View style={styles.header}>
           <Pressable
             onPress={() => navigation.goBack()}
@@ -254,27 +299,38 @@ export default function GuideDetailScreen({ navigation, route }: GuideDetailScre
             <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
           </Pressable>
 
-          <Text style={styles.headerTitle}>SafeSpace</Text>
+          <Text style={styles.headerTitle}>Guia de Apoio</Text>
 
-          <View style={styles.placeholder} />
+          <View style={styles.avatarWrap}>
+            <Ionicons name="person" size={18} color="#7A4A1E" />
+          </View>
         </View>
 
         {/* CONTEÚDO */}
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.tagContainer}>
-            <Text style={styles.tagText}>{type}</Text>
+       <ScrollView
+  style={styles.scrollView}
+  contentContainerStyle={styles.scrollContent}
+  showsVerticalScrollIndicator={true}
+  persistentScrollbar={true}
+>
+          {/* BREADCRUMB */}
+          <View style={styles.breadcrumbRow}>
+            <Text style={styles.breadcrumbText}>{type}</Text>
+            <Ionicons name="chevron-forward" size={13} color="#A89C8A" style={styles.breadcrumbChevron} />
+            <Text style={[styles.breadcrumbText, styles.breadcrumbActive]}>{category}</Text>
           </View>
 
           <Text style={styles.title}>{title}</Text>
 
+          {/* IMAGEM DE DESTAQUE */}
+          {image ? (
+            <Image source={{ uri: image }} style={styles.heroImage} resizeMode="cover" />
+          ) : null}
+
           {renderSections()}
         </ScrollView>
 
-        {/* BOTÃO FIXO - MAIS ELEGANTE */}
+        {/* BOTÃO FIXO */}
         <View style={styles.footerContainer}>
           <TouchableOpacity
             style={styles.helpButton}
@@ -291,7 +347,7 @@ export default function GuideDetailScreen({ navigation, route }: GuideDetailScre
                 <Ionicons name="chatbubble-ellipses-outline" size={20} color="#FFF" />
                 <View style={styles.helpButtonTexts}>
                   <Text style={styles.helpButtonSub}>Precisa de apoio?</Text>
-                  <Text style={styles.helpButtonLabel}>Falar com um especialista</Text>
+<Text style={styles.helpButtonLabel}>Falar com um especialista</Text>
                 </View>
                 <Ionicons name="arrow-forward" size={20} color="#FFF" />
               </View>
@@ -332,45 +388,62 @@ const styles = StyleSheet.create({
     color: "#1A1A1A",
     letterSpacing: 0.3,
   },
-  placeholder: {
-    width: 40,
-    height: 40,
+  avatarWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "#F3E8D8",
+    alignItems: "center",
+    justifyContent: "center",
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingTop: 20,
     paddingBottom: 140,
   },
-  tagContainer: {
-    backgroundColor: "#E8F0E3",
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 20,
-    alignSelf: "flex-start",
-    marginBottom: 16,
+  breadcrumbRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
   },
-  tagText: {
+  breadcrumbText: {
     fontSize: 12,
-    fontWeight: "600",
-    color: "#4A7C59",
-    letterSpacing: 0.3,
+    color: "#A89C8A",
+    fontWeight: "500",
+  },
+  breadcrumbChevron: {
+    marginHorizontal: 4,
+  },
+  breadcrumbActive: {
+    color: "#8B5A3C",
+    fontWeight: "700",
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "700",
     color: "#1A1A1A",
-    marginBottom: 20,
-    lineHeight: 36,
+    marginBottom: 18,
+    lineHeight: 33,
+  },
+  heroImage: {
+    width: "100%",
+    height: 190,
+    borderRadius: 18,
+    marginBottom: 22,
+    backgroundColor: "#EDE8E2",
   },
   paragraphText: {
-    fontSize: 16,
-    color: "#444444",
-    lineHeight: 26,
+    fontSize: 15,
+    fontStyle: "italic",
+    color: "#5A5346",
+    lineHeight: 24,
     marginBottom: 16,
-    paddingLeft: 4,
+    paddingLeft: 14,
+    borderLeftWidth: 3,
+    borderLeftColor: "#D9CBB0",
   },
   divider: {
     height: 1,
@@ -378,93 +451,132 @@ const styles = StyleSheet.create({
     marginVertical: 28,
     opacity: 0.5,
   },
+  subtitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 14,
+    marginTop: 4,
+  },
+  subtitleBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
   subtitleText: {
     fontSize: 20,
     fontWeight: "700",
     color: "#1A1A1A",
-    marginBottom: 14,
-    marginTop: 4,
-    paddingLeft: 4,
+    flex: 1,
   },
+
+  // Cards de item com etiqueta (ex: "Como identificar os sinais")
   itemCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 14,
-    padding: 18,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#EDE8E2",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
+    padding: 16,
+    marginBottom: 12,
   },
-  itemHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 6,
+  itemLabel: {
+    alignSelf: "flex-start",
+    backgroundColor: "#F3EFE6",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 10,
+    marginBottom: 8,
   },
-  itemTitle: {
-    fontSize: 17,
+  itemLabelText: {
+    fontSize: 13,
     fontWeight: "700",
-    color: "#2C2C2C",
-    marginLeft: 10,
+    color: "#7A4A1E",
   },
   itemDescription: {
-    fontSize: 15,
+    fontSize: 14.5,
     color: "#555555",
-    lineHeight: 22,
-    paddingLeft: 34,
+    lineHeight: 21,
   },
+
+  // Cards de item com ícone (ex: "Como oferecer ajuda prática")
+  iconItemCard: {
+    flexDirection: "row",
+    backgroundColor: "#F5F3EE",
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 12,
+  },
+  iconItemIconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  iconItemTextWrap: {
+    flex: 1,
+  },
+  iconItemTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1A1A1A",
+    marginBottom: 4,
+  },
+  iconItemDescription: {
+    fontSize: 14,
+    color: "#666666",
+    lineHeight: 20,
+  },
+
+  // Cards "O que ajuda" / "O que evitar"
   cardContainer: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    padding: 18,
+    borderRadius: 18,
+    padding: 20,
     marginVertical: 10,
-    borderWidth: 1,
-    borderColor: "#E8E2DA",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
   cardDanger: {
-    borderColor: "#FCE4E4",
-    backgroundColor: "#FFF8F8",
+    backgroundColor: "#FBEAEA",
   },
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 14,
+    gap: 8,
   },
   cardLabel: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: "700",
-    color: "#2C2C2C",
-    marginLeft: 10,
+    color: "#2E7D32",
   },
   cardLabelDanger: {
-    color: "#B71C1C",
+    color: "#C62828",
   },
   cardItem: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: 10,
+    marginBottom: 12,
   },
-  cardIcon: {
-    marginRight: 12,
-    marginTop: 2,
+  cardDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    marginRight: 10,
+    marginTop: 8,
   },
   cardText: {
     flex: 1,
-    fontSize: 15,
-    color: "#444444",
-    lineHeight: 22,
+    fontSize: 14.5,
+    color: "#3D3D3D",
+    lineHeight: 21,
   },
   cardTextDanger: {
-    color: "#5D2E2E",
+    color: "#3D3D3D",
   },
+
+  // Bullet simples (usado em "Cuidando de você também")
   bulletContainer: {
     marginVertical: 6,
     paddingLeft: 4,
@@ -488,6 +600,7 @@ const styles = StyleSheet.create({
     color: "#444444",
     lineHeight: 22,
   },
+
   footerContainer: {
     position: "absolute",
     bottom: 24,

@@ -92,6 +92,11 @@ body {
     width: fit-content;
 }
 
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 
 /*------------------------ Tipografia compartilhada --------------------------*/
 

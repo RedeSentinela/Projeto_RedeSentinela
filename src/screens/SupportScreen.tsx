@@ -1,19 +1,21 @@
 import React from "react";
+
 import {
   View,
   Text,
   StyleSheet,
   Pressable,
   SafeAreaView,
+  Platform,
   Image,
   useWindowDimensions,
 } from "react-native";
+
 import { Ionicons } from "@expo/vector-icons";
 import PrimaryButton from "../components/PrimaryButton";
 import ProgressDots from "../components/ProgressDots";
 import { colors, typography, spacing } from "../theme/theme";
 
-// Tipagem simples e local, sem precisar de arquivo separado
 type SupportScreenProps = {
   navigation: {
     navigate: (screen: string, params?: object) => void;
@@ -21,15 +23,20 @@ type SupportScreenProps = {
   };
 };
 
-export default function SupportScreen({ navigation }: SupportScreenProps) {
+export default function SupportScreen({
+  navigation,
+}: SupportScreenProps) {
   const { width, height } = useWindowDimensions();
 
   const isSmallScreen = height < 700;
   const isVerySmallScreen = height < 620;
 
-  // Imagem um pouco menor para dar mais espaço ao sheet
+  /*
+   * Mantém a imagem em um tamanho parecido
+   * com a proporção usada na WelcomeScreen.
+   */
   const imageHeight = isVerySmallScreen
-    ? 200
+    ? 210
     : isSmallScreen
     ? 240
     : 280;
@@ -38,81 +45,87 @@ export default function SupportScreen({ navigation }: SupportScreenProps) {
 
   return (
     <View style={styles.root}>
-      <SafeAreaView style={styles.safeTop}>
 
-        <View style={styles.header}>
-          <Pressable
-            onPress={() => navigation.goBack()}
-            hitSlop={12}
-            style={styles.headerButton}
-          >
-            <Ionicons
-              name="arrow-back"
-              size={21}
-              color={colors.textDark}
-            />
-          </Pressable>
+      {/* ÁREA SUPERIOR */}
+      <View style={styles.topContainer}>
+        <SafeAreaView style={styles.safeTop}>
 
-          <View style={styles.headerTextWrap}>
-            <Text style={styles.brand}>
-              Rede Sentinela
-            </Text>
-            <Text style={styles.step}>
-              PASSO 2 DE 4
-            </Text>
+          {/* HEADER */}
+          <View style={styles.header}>
+            <Pressable
+              onPress={() => navigation.goBack()}
+              hitSlop={12}
+              style={styles.headerButton}
+            >
+              <Ionicons
+                name="arrow-back"
+                size={21}
+                color={colors.textDark}
+              />
+            </Pressable>
+
+            <View style={styles.headerTextWrap}>
+              <Text style={styles.brand}>
+                Rede Sentinela
+              </Text>
+
+              <Text style={styles.step}>
+                PASSO 2 DE 4
+              </Text>
+            </View>
+
+            <View style={styles.headerPlaceholder} />
           </View>
 
-          <View style={styles.headerPlaceholder} />
-        </View>
+          {/* CONTEÚDO PRINCIPAL */}
+          <View style={styles.mainContent}>
 
-        <View style={styles.mainContent}>
+            <View
+              style={[
+                styles.illustrationCard,
+                {
+                  width: imageWidth,
+                  height: imageHeight,
+                },
+              ]}
+            >
+              <Image
+                source={require("../assets/apoio.png")}
+                style={styles.illustrationImage}
+                resizeMode="contain"
+              />
+            </View>
 
-          <View
-            style={[
-              styles.illustrationCard,
-              {
-                width: imageWidth,
-                height: imageHeight,
-              },
-            ]}
-          >
-            <Image
-              source={require("../assets/apoio.png")}
-              style={styles.illustrationImage}
-              resizeMode="contain"
-            />
+            <Text
+              style={[
+                styles.title,
+                isSmallScreen && styles.titleSmall,
+              ]}
+            >
+              Encontre Apoio Especializado
+            </Text>
+
+            <Text
+              style={[
+                styles.subtitle,
+                isSmallScreen && styles.subtitleSmall,
+              ]}
+            >
+              Localize ONGs, hospitais e profissionais qualificados
+              em uma rede segura de acolhimento.
+            </Text>
+
           </View>
 
-          <Text
-            style={[
-              styles.title,
-              isSmallScreen && styles.titleSmall,
-            ]}
-          >
-            Encontre Apoio Especializado
-          </Text>
+        </SafeAreaView>
+      </View>
 
-          <Text
-            style={[
-              styles.subtitle,
-              isSmallScreen && styles.subtitleSmall,
-            ]}
-          >
-            Localize ONGs, hospitais e profissionais qualificados em uma rede
-            segura de acolhimento.
-          </Text>
-        </View>
-      </SafeAreaView>
+      {/* QUADRADO BRANCO */}
+      <View style={styles.sheet}>
 
-      {/* Sheet ocupando mais espaço */}
-      <View
-        style={[
-          styles.sheet,
-          isSmallScreen && styles.sheetSmall,
-        ]}
-      >
-
+        {/* CARD REDE DE APOIO */}
         <View style={styles.infoCard}>
+
           <View style={styles.infoIconWrap}>
             <Ionicons
               name="people"
@@ -125,6 +138,7 @@ export default function SupportScreen({ navigation }: SupportScreenProps) {
             <Text style={styles.infoTitle}>
               Rede de Apoio
             </Text>
+
             <Text style={styles.infoSubtitle}>
               Chat 24h disponível
             </Text>
@@ -132,10 +146,15 @@ export default function SupportScreen({ navigation }: SupportScreenProps) {
 
           <View style={styles.liveIndicator}>
             <View style={styles.liveDot} />
-            <Text style={styles.liveText}>Ao vivo</Text>
+
+            <Text style={styles.liveText}>
+              Ao vivo
+            </Text>
           </View>
+
         </View>
 
+        {/* BOLINHAS */}
         <View style={styles.dotsWrapper}>
           <ProgressDots
             total={4}
@@ -143,6 +162,7 @@ export default function SupportScreen({ navigation }: SupportScreenProps) {
           />
         </View>
 
+        {/* BOTÃO */}
         <View style={styles.buttonWrapper}>
           <PrimaryButton
             label="Próximo passo"
@@ -150,6 +170,7 @@ export default function SupportScreen({ navigation }: SupportScreenProps) {
           />
         </View>
 
+        {/* VOLTAR */}
         <Pressable
           style={styles.backBtn}
           onPress={() => navigation.goBack()}
@@ -161,6 +182,7 @@ export default function SupportScreen({ navigation }: SupportScreenProps) {
         </Pressable>
 
       </View>
+
     </View>
   );
 }
@@ -171,16 +193,32 @@ const styles = StyleSheet.create({
     backgroundColor: colors.mintBg,
   },
 
-  safeTop: {
-    flex: 1,
+  /*
+   * MESMA PROPORÇÃO DA WELCOME
+   */
+  topContainer: {
+    flex: 1.15,
+    backgroundColor: colors.mintBg,
   },
 
+  safeTop: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+  },
+
+  /* HEADER */
   header: {
-    height: 52,
+    width: "100%",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: spacing.lg,
+
+    paddingTop:
+      Platform.OS === "web"
+        ? spacing.md
+        : 0,
+
+    paddingBottom: spacing.sm,
   },
 
   headerButton: {
@@ -210,21 +248,20 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
 
+  /* CONTEÚDO DA PARTE SUPERIOR */
   mainContent: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 16,
-    paddingTop: 2,
-    paddingBottom: 2,
+    paddingBottom: spacing.sm,
   },
 
   illustrationCard: {
     borderRadius: 20,
     overflow: "hidden",
-    marginBottom: 8,
     backgroundColor: "transparent",
     alignSelf: "center",
+    marginBottom: 8,
   },
 
   illustrationImage: {
@@ -260,52 +297,57 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
 
+  /*
+   * QUADRADO BRANCO
+   *
+   * O marginTop -28 é o mesmo da WelcomeScreen.
+   */
   sheet: {
     backgroundColor: colors.cardWhite,
+
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: {
-      width: 0,
-      height: -4,
-    },
-    elevation: 6,
-    flex: 0.45,
+
+    marginTop: -28,
+
+    paddingTop: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
   },
 
-  sheetSmall: {
-    paddingTop: 12,
-    paddingBottom: 16,
-    flex: 0.4,
-  },
-
+  /* CARD DE REDE DE APOIO */
   infoCard: {
     height: 48,
     width: "75%",
     maxWidth: 320,
+
     flexDirection: "row",
     alignItems: "center",
+
     borderWidth: 1,
     borderColor: colors.divider,
+
     borderRadius: 12,
+
     paddingHorizontal: 12,
     marginBottom: 10,
+
     backgroundColor: "#FAFAF5",
+
     alignSelf: "center",
   },
 
   infoIconWrap: {
     width: 28,
     height: 28,
+
     borderRadius: 14,
+
     backgroundColor: "#F3EFE0",
+
     alignItems: "center",
     justifyContent: "center",
+
     marginRight: 8,
   },
 
@@ -328,13 +370,18 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
 
+  /* AO VIVO */
   liveIndicator: {
     flexDirection: "row",
     alignItems: "center",
+
     backgroundColor: "#E8F5E9",
+
     paddingHorizontal: 6,
     paddingVertical: 3,
+
     borderRadius: 8,
+
     gap: 3,
   },
 
@@ -352,6 +399,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 
+  /* BOLINHAS */
   dotsWrapper: {
     alignItems: "center",
     height: 20,
@@ -359,6 +407,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
+  /* BOTÃO */
   buttonWrapper: {
     width: "55%",
     maxWidth: 260,
@@ -366,6 +415,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
 
+  /* VOLTAR */
   backBtn: {
     height: 24,
     alignItems: "center",

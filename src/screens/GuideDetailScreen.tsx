@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
+  StyleSheet, // ← ESSA ESTAVA FALTANDO!
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -10,11 +10,14 @@ import {
   Alert,
   TouchableOpacity,
   Image,
+  Linking,
+  ImageSourcePropType,
+  useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import YoutubePlayer from "react-native-youtube-iframe";
 
-// Tipagem simples e local, sem precisar de arquivo separado
 type GuideDetailScreenProps = {
   navigation: {
     goBack: () => void;
@@ -24,14 +27,16 @@ type GuideDetailScreenProps = {
       title?: string;
       type?: string;
       category?: string;
-      image?: string;
+      image?: string | ImageSourcePropType;
+      videoId?: string;
+      videoCredit?: string;
+      videoCreditUrl?: string;
       sections?: Section[];
-      content?: string; // presente no GuideScreen original, mantido por segurança
+      content?: string;
     };
   };
 };
 
-// União de todos os formatos possíveis de seção do conteúdo
 type Section =
   | { type: "paragraph"; text: string }
   | { type: "divider" }
@@ -39,146 +44,66 @@ type Section =
   | { type: "item"; title: string; description: string; icon?: keyof typeof Ionicons.glyphMap; iconColor?: string }
   | { type: "checklist"; items: string[] }
   | { type: "xlist"; items: string[] }
-  | { type: "bullet"; items: string[] };
+  | { type: "bullet"; items: string[] }
+  | { type: "source"; label: string; url: string }
+  | { type: "highlight"; icon?: keyof typeof Ionicons.glyphMap; title: string; text: string; source?: string; url?: string };
 
 export default function GuideDetailScreen({ navigation, route }: GuideDetailScreenProps) {
   const params = route?.params || {};
+  const [playing, setPlaying] = useState(false);
+  const { width } = useWindowDimensions();
 
   const defaultContent: {
     title: string;
     type: string;
     category: string;
-    image: string;
+    image: string | ImageSourcePropType;
     sections: Section[];
   } = {
     title: "Como ajudar uma amiga em risco",
     type: "Guia de Apoio",
     category: "Ajudando Amigas",
-    image: "https://images.unsplash.com/photo-1516585427167-9f4af9627e6c?w=800&h=500&fit=crop&crop=center",
+    image: require("../assets/guia/09_ajudar_amiga.png"),
     sections: [
       {
         type: "paragraph",
-        text: "Perceber que alguém que amamos pode estar em uma situação de vulnerabilidade é assustador. Mas sua presença e seu suporte podem ser o primeiro passo para a segurança dela."
+        text: "Perceber que alguém que amamos pode estar em uma situação de vulnerabilidade é assustador. Mas sua presença e seu suporte podem ser o primeiro passo para a segurança dela.",
       },
-      {
-        type: "divider"
-      },
-      {
-        type: "subtitle",
-        text: "Como identificar os sinais",
-        icon: "eye-outline",
-        color: "#4A7C59"
-      },
-      {
-        type: "item",
-        title: "Mudanças de Comportamento",
-        description: "Isolamento social repentino, cancelamentos frequentes ou perda de interesse em atividades que ela amava."
-      },
-      {
-        type: "item",
-        title: "Sinais Físicos",
-        description: "Marcas inexplicáveis, uso de roupas inadequadas ao clima (para cobrir o corpo) ou aparência exausta."
-      },
-      {
-        type: "item",
-        title: "Dependência de Controle",
-        description: "Ela precisa pedir permissão para tudo ou é monitorada constantemente pelo parceiro via celular."
-      },
-      {
-        type: "item",
-        title: "Alterações de Humor",
-        description: "Ansiedade elevada, sobressaltos, ou uma postura excessivamente defensiva sobre o relacionamento."
-      },
-      {
-        type: "divider"
-      },
-      {
-        type: "subtitle",
-        text: "O que dizer (e o que não dizer)",
-        icon: "mail-outline",
-        color: "#7A4A1E"
-      },
-      {
-        type: "paragraph",
-        text: "Saber o que falar e como abordar o assunto é fundamental para não piorar a situação da vítima."
-      },
-      {
-        type: "checklist",
-        items: [
-          "Estou aqui para você, não importa o que aconteça.",
-          "A culpa não é sua. Ninguém merece passar por isso.",
-          "Eu acredito em você e no que você está me contando."
-        ]
-      },
-      {
-        type: "xlist",
-        items: [
-          "Por que você simplesmente não vai embora?",
-          "Eu te avisei que ele não prestava.",
-          "Você deve ter feito algo para ele reagir assim."
-        ]
-      },
-      {
-        type: "divider"
-      },
-      {
-        type: "subtitle",
-        text: "Como oferecer ajuda prática",
-        icon: "hand-left-outline",
-        color: "#4A7C59"
-      },
-      {
-        type: "item",
-        title: "Porto Seguro",
-        description: "Ofereça sua casa para ela guardar documentos importantes ou uma mochila de emergência com itens essenciais.",
-        icon: "key-outline",
-        iconColor: "#B8860B"
-      },
-      {
-        type: "item",
-        title: "Canal de Comunicação",
-        description: "Estabeleça uma palavra-código ou um sinal discreto para que ela possa te avisar se estiver em perigo imediato.",
-        icon: "call-outline",
-        iconColor: "#2E7D32"
-      },
-      {
-        type: "item",
-        title: "Pesquisa Segura",
-        description: "Ofereça-se para pesquisar serviços de suporte, delegacias ou ONGs usando seu próprio dispositivo, para não deixar rastros no dela.",
-        icon: "search-outline",
-        iconColor: "#2C7A9E"
-      },
-      {
-        type: "divider"
-      },
-      {
-        type: "subtitle",
-        text: "Cuidando de você também",
-        icon: "heart-outline",
-        color: "#4A7C59"
-      },
-      {
-        type: "paragraph",
-        text: "Apoiar alguém em situação de violência pode ser emocionalmente desgastante. É importante que você também cuide da sua saúde mental:"
-      },
-      {
-        type: "bullet",
-        items: [
-          "Busque apoio para você também",
-          "Estabeleça limites saudáveis",
-          "Não se culpe pelo que está fora do seu controle",
-          "Reconheça seus próprios limites",
-          "Busque informações sobre o assunto para se sentir mais preparado"
-        ]
-      }
-    ]
+      { type: "divider" },
+      { type: "subtitle", text: "Como identificar os sinais", icon: "eye-outline", color: "#4A7C59" },
+      { type: "item", title: "Mudanças de Comportamento", description: "Isolamento social repentino, cancelamentos frequentes ou perda de interesse em atividades que ela amava." },
+      { type: "item", title: "Sinais Físicos", description: "Marcas inexplicáveis, uso de roupas inadequadas ao clima para cobrir o corpo ou aparência exausta." },
+      { type: "item", title: "Dependência de Controle", description: "Ela precisa pedir permissão para tudo ou é monitorada constantemente pelo parceiro via celular." },
+      { type: "item", title: "Alterações de Humor", description: "Ansiedade elevada, sobressaltos ou uma postura excessivamente defensiva sobre o relacionamento." },
+      { type: "divider" },
+      { type: "subtitle", text: "O que dizer (e o que não dizer)", icon: "mail-outline", color: "#7A4A1E" },
+      { type: "paragraph", text: "Saber o que falar e como abordar o assunto é fundamental para não piorar a situação da vítima." },
+      { type: "checklist", items: ["Estou aqui para você, não importa o que aconteça.", "A culpa não é sua. Ninguém merece passar por isso.", "Eu acredito em você e no que você está me contando."] },
+      { type: "xlist", items: ["Por que você simplesmente não vai embora?", "Eu te avisei que ele não prestava.", "Você deve ter feito algo para ele reagir assim."] },
+      { type: "divider" },
+      { type: "subtitle", text: "Como oferecer ajuda prática", icon: "hand-left-outline", color: "#4A7C59" },
+      { type: "item", title: "Porto Seguro", description: "Ofereça sua casa para ela guardar documentos importantes ou uma mochila de emergência com itens essenciais.", icon: "key-outline", iconColor: "#B8860B" },
+      { type: "item", title: "Canal de Comunicação", description: "Estabeleça uma palavra-código ou um sinal discreto para que ela possa te avisar se estiver em perigo imediato.", icon: "call-outline", iconColor: "#2E7D32" },
+      { type: "item", title: "Pesquisa Segura", description: "Ofereça-se para pesquisar serviços de suporte, delegacias ou ONGs usando seu próprio dispositivo, para não deixar rastros no dela.", icon: "search-outline", iconColor: "#2C7A9E" },
+      { type: "divider" },
+      { type: "subtitle", text: "Cuidando de você também", icon: "heart-outline", color: "#4A7C59" },
+      { type: "paragraph", text: "Apoiar alguém em situação de violência pode ser emocionalmente desgastante. É importante que você também cuide da sua saúde mental:" },
+      { type: "bullet", items: ["Busque apoio para você também", "Estabeleça limites saudáveis", "Não se culpe pelo que está fora do seu controle", "Reconheça seus próprios limites", "Busque informações sobre o assunto para se sentir mais preparado"] },
+    ],
   };
 
   const title = params.title || defaultContent.title;
   const type = params.type || defaultContent.type;
   const category = params.category || defaultContent.category;
   const image = params.image || defaultContent.image;
+  const videoId = params.videoId;
+  const videoCredit = params.videoCredit;
+  const videoCreditUrl = params.videoCreditUrl;
   const sections = params.sections || defaultContent.sections;
+
+  const horizontalPadding = 24 * 2;
+  const videoWidth = width - horizontalPadding;
+  const videoHeight = videoWidth * (9 / 16);
 
   const handleHelpPress = () => {
     Alert.alert(
@@ -186,14 +111,16 @@ export default function GuideDetailScreen({ navigation, route }: GuideDetailScre
       "Você será direcionado para um especialista. Deseja continuar?",
       [
         { text: "Cancelar", style: "cancel" },
-        { text: "Sim", onPress: () => {
-          console.log("Abrir chat com especialista");
-        }}
+        { text: "Sim", onPress: () => console.log("Abrir chat com especialista") },
       ]
     );
   };
 
   const renderSections = () => {
+    if (!sections || sections.length === 0) {
+      return null;
+    }
+
     return sections.map((item, index) => {
       switch (item.type) {
         case "paragraph":
@@ -203,34 +130,45 @@ export default function GuideDetailScreen({ navigation, route }: GuideDetailScre
             </Text>
           );
         case "divider":
-          return (
-            <View key={index} style={styles.divider} />
-          );
+          return <View key={index} style={styles.divider} />;
         case "subtitle":
           return (
             <View key={index} style={styles.subtitleRow}>
-              <View style={[styles.subtitleBadge, { backgroundColor: item.color || "#4A7C59" }]}>
-                <Ionicons name={item.icon || "sparkles-outline"} size={16} color="#FFFFFF" />
+              <View
+                style={[
+                  styles.subtitleBadge,
+                  { backgroundColor: item.color || "#4A7C59" },
+                ]}
+              >
+                <Ionicons
+                  name={item.icon || "sparkles-outline"}
+                  size={16}
+                  color="#FFF"
+                />
               </View>
               <Text style={styles.subtitleText}>{item.text}</Text>
             </View>
           );
         case "item":
-          // Variante com ícone (ex: "Como oferecer ajuda prática")
           if (item.icon) {
             return (
               <View key={index} style={styles.iconItemCard}>
                 <View style={styles.iconItemIconWrap}>
-                  <Ionicons name={item.icon} size={20} color={item.iconColor || "#4A7C59"} />
+                  <Ionicons
+                    name={item.icon}
+                    size={20}
+                    color={item.iconColor || "#4A7C59"}
+                  />
                 </View>
                 <View style={styles.iconItemTextWrap}>
                   <Text style={styles.iconItemTitle}>{item.title}</Text>
-                  <Text style={styles.iconItemDescription}>{item.description}</Text>
+                  <Text style={styles.iconItemDescription}>
+                    {item.description}
+                  </Text>
                 </View>
               </View>
             );
           }
-          // Variante com etiqueta (ex: "Como identificar os sinais")
           return (
             <View key={index} style={styles.itemCard}>
               <View style={styles.itemLabel}>
@@ -280,6 +218,40 @@ export default function GuideDetailScreen({ navigation, route }: GuideDetailScre
               ))}
             </View>
           );
+        case "source":
+          return (
+            <Pressable
+              key={index}
+              onPress={() => Linking.openURL(item.url)}
+              style={styles.sourceRow}
+              hitSlop={8}
+            >
+              <Ionicons name="link-outline" size={14} color="#A89C8A" />
+              <Text style={styles.sourceText}>
+                Fonte: <Text style={styles.sourceName}>{item.label}</Text>
+              </Text>
+            </Pressable>
+          );
+        case "highlight":
+          return (
+            <View key={index} style={styles.highlightCard}>
+              <View style={styles.highlightHeader}>
+                <Ionicons name={item.icon || "information-circle"} size={24} color="#4A7C59" />
+                <Text style={styles.highlightTitle}>{item.title}</Text>
+              </View>
+              <Text style={styles.highlightText}>{item.text}</Text>
+              {item.source && (
+                <Pressable
+                  onPress={() => item.url && Linking.openURL(item.url)}
+                  style={styles.highlightSource}
+                  hitSlop={8}
+                >
+                  <Ionicons name="link-outline" size={14} color="#8B5A3C" />
+                  <Text style={styles.highlightSourceText}>Fonte: {item.source}</Text>
+                </Pressable>
+              )}
+            </View>
+          );
         default:
           return null;
       }
@@ -289,7 +261,6 @@ export default function GuideDetailScreen({ navigation, route }: GuideDetailScre
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* HEADER */}
         <View style={styles.header}>
           <Pressable
             onPress={() => navigation.goBack()}
@@ -298,39 +269,112 @@ export default function GuideDetailScreen({ navigation, route }: GuideDetailScre
           >
             <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
           </Pressable>
-
           <Text style={styles.headerTitle}>Guia de Apoio</Text>
-
           <View style={styles.avatarWrap}>
             <Ionicons name="person" size={18} color="#7A4A1E" />
           </View>
         </View>
 
-        {/* CONTEÚDO */}
-       <ScrollView
-  style={styles.scrollView}
-  contentContainerStyle={styles.scrollContent}
-  showsVerticalScrollIndicator={true}
-  persistentScrollbar={true}
->
-          {/* BREADCRUMB */}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator
+          persistentScrollbar
+        >
           <View style={styles.breadcrumbRow}>
             <Text style={styles.breadcrumbText}>{type}</Text>
-            <Ionicons name="chevron-forward" size={13} color="#A89C8A" style={styles.breadcrumbChevron} />
-            <Text style={[styles.breadcrumbText, styles.breadcrumbActive]}>{category}</Text>
+            <Ionicons
+              name="chevron-forward"
+              size={13}
+              color="#A89C8A"
+              style={styles.breadcrumbChevron}
+            />
+            <Text style={[styles.breadcrumbText, styles.breadcrumbActive]}>
+              {category}
+            </Text>
           </View>
 
           <Text style={styles.title}>{title}</Text>
 
-          {/* IMAGEM DE DESTAQUE */}
-          {image ? (
-            <Image source={{ uri: image }} style={styles.heroImage} resizeMode="cover" />
-          ) : null}
+          {videoId && (
+            <View style={styles.videoWrap}>
+              {Platform.OS === "web" ? (
+                <iframe
+                  width="100%"
+                  height={videoHeight}
+                  src={`https://www.youtube.com/embed/${videoId}`}
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  style={{ border: 0 }}
+                />
+              ) : (
+                <YoutubePlayer
+                  height={videoHeight}
+                  width="100%"
+                  play={playing}
+                  videoId={videoId}
+                  onChangeState={(state: string) => {
+                    if (state === "ended") setPlaying(false);
+                  }}
+                />
+              )}
+            </View>
+          )}
+
+          {videoId && videoCredit && (
+            <Pressable
+              onPress={() => videoCreditUrl && Linking.openURL(videoCreditUrl)}
+              style={styles.videoCreditCard}
+              hitSlop={8}
+            >
+              <Ionicons name="logo-youtube" size={18} color="#FF0000" />
+              <Text style={styles.videoCreditText}>
+                <Text style={styles.videoCreditLabel}>Vídeo:</Text> {videoCredit}
+              </Text>
+              <Ionicons name="open-outline" size={14} color="#A89C8A" />
+            </Pressable>
+          )}
+
+          {!videoId && image && (
+            <Image
+              source={typeof image === "string" ? { uri: image } : image}
+              style={styles.heroImage}
+              resizeMode="cover"
+            />
+          )}
 
           {renderSections()}
+
+          {/* 
+            ⚠️ RODAPÉ DE CRÉDITOS DO GOVERNO – SÓ APARECE NO GUIA "Como ajudar uma amiga em risco"
+          */}
+          {title === "Como ajudar uma amiga em risco" && (
+            <View style={styles.governmentCredits}>
+              <View style={styles.creditsDivider} />
+              <Ionicons name="shield-outline" size={24} color="#4A7C59" />
+              <Text style={styles.creditsTitle}>
+                Conteúdo baseado no Guia Prático de Cuidado à Mulher em Situação de Violência
+              </Text>
+              <Text style={styles.creditsSub}>
+                Ministério da Saúde – Secretaria de Atenção Primária à Saúde, 2025
+              </Text>
+              <Pressable
+                onPress={() =>
+                  Linking.openURL(
+                    "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/guias-e-manuais/2025/guia-pratico-de-cuidado-a-mulher-em-situacao-de-violencia.pdf"
+                  )
+                }
+                style={styles.creditsLink}
+              >
+                <Ionicons name="link-outline" size={14} color="#8B5A3C" />
+                <Text style={styles.creditsLinkText}>Acesse o guia completo</Text>
+              </Pressable>
+            </View>
+          )}
         </ScrollView>
 
-        {/* BOTÃO FIXO */}
         <View style={styles.footerContainer}>
           <TouchableOpacity
             style={styles.helpButton}
@@ -347,7 +391,7 @@ export default function GuideDetailScreen({ navigation, route }: GuideDetailScre
                 <Ionicons name="chatbubble-ellipses-outline" size={20} color="#FFF" />
                 <View style={styles.helpButtonTexts}>
                   <Text style={styles.helpButtonSub}>Precisa de apoio?</Text>
-<Text style={styles.helpButtonLabel}>Falar com um especialista</Text>
+                  <Text style={styles.helpButtonLabel}>Falar com um especialista</Text>
                 </View>
                 <Ionicons name="arrow-forward" size={20} color="#FFF" />
               </View>
@@ -430,10 +474,53 @@ const styles = StyleSheet.create({
   },
   heroImage: {
     width: "100%",
-    height: 190,
+    height: 200,
     borderRadius: 18,
     marginBottom: 22,
     backgroundColor: "#EDE8E2",
+  },
+  videoWrap: {
+    width: "100%",
+    borderRadius: 18,
+    overflow: "hidden",
+    marginBottom: 8,
+    backgroundColor: "#000",
+  },
+  videoCreditCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 22,
+    borderWidth: 1,
+    borderColor: "#E8E2DA",
+    gap: 8,
+  },
+  videoCreditText: {
+    flex: 1,
+    fontSize: 13,
+    color: "#555",
+  },
+  videoCreditLabel: {
+    fontWeight: "700",
+    color: "#1A1A1A",
+  },
+  sourceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  sourceText: {
+    fontSize: 12,
+    color: "#A89C8A",
+  },
+  sourceName: {
+    fontWeight: "700",
+    color: "#8B5A3C",
+    textDecorationLine: "underline",
   },
   paragraphText: {
     fontSize: 15,
@@ -471,8 +558,6 @@ const styles = StyleSheet.create({
     color: "#1A1A1A",
     flex: 1,
   },
-
-  // Cards de item com etiqueta (ex: "Como identificar os sinais")
   itemCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 14,
@@ -497,8 +582,6 @@ const styles = StyleSheet.create({
     color: "#555555",
     lineHeight: 21,
   },
-
-  // Cards de item com ícone (ex: "Como oferecer ajuda prática")
   iconItemCard: {
     flexDirection: "row",
     backgroundColor: "#F5F3EE",
@@ -529,8 +612,6 @@ const styles = StyleSheet.create({
     color: "#666666",
     lineHeight: 20,
   },
-
-  // Cards "O que ajuda" / "O que evitar"
   cardContainer: {
     backgroundColor: "#FFFFFF",
     borderRadius: 18,
@@ -575,8 +656,6 @@ const styles = StyleSheet.create({
   cardTextDanger: {
     color: "#3D3D3D",
   },
-
-  // Bullet simples (usado em "Cuidando de você também")
   bulletContainer: {
     marginVertical: 6,
     paddingLeft: 4,
@@ -600,7 +679,81 @@ const styles = StyleSheet.create({
     color: "#444444",
     lineHeight: 22,
   },
-
+  highlightCard: {
+    backgroundColor: "#F0F7EE",
+    borderRadius: 16,
+    padding: 20,
+    marginVertical: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: "#4A7C59",
+  },
+  highlightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+    gap: 8,
+  },
+  highlightTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1A1A1A",
+  },
+  highlightText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#2D3E2D",
+    marginBottom: 12,
+  },
+  highlightSource: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 4,
+  },
+  highlightSourceText: {
+    fontSize: 12,
+    color: "#8B5A3C",
+    textDecorationLine: "underline",
+  },
+  governmentCredits: {
+    marginTop: 30,
+    marginBottom: 20,
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  creditsDivider: {
+    width: 60,
+    height: 3,
+    backgroundColor: "#4A7C59",
+    marginBottom: 16,
+    borderRadius: 2,
+  },
+  creditsTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#1A1A1A",
+    textAlign: "center",
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  creditsSub: {
+    fontSize: 13,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  creditsLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 6,
+  },
+  creditsLinkText: {
+    fontSize: 13,
+    color: "#8B5A3C",
+    textDecorationLine: "underline",
+    fontWeight: "500",
+  },
   footerContainer: {
     position: "absolute",
     bottom: 24,

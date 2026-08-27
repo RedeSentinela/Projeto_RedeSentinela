@@ -1,6 +1,7 @@
 import React from "react";
 import {
   View,
+  Animated,
   Text,
   StyleSheet,
   Pressable,
@@ -13,6 +14,8 @@ import PrimaryButton from "../components/PrimaryButton";
 import ProgressDots from "../components/ProgressDots";
 import FeatureCard from "../components/FeatureCard";
 import { colors, typography, spacing } from "../theme/theme";
+import { useSwipeNavigation } from "../hooks/useSwipeNavigation";
+import { useScreenEntrance } from "../hooks/useScreenEntrance";
 
 // Tipagem simples e local, sem precisar de arquivo separado
 type SecurityScreensProps = {
@@ -24,8 +27,20 @@ type SecurityScreensProps = {
 
 // Tela 3 do onboarding: "Denúncia e Segurança" (passo 3 de 4)
 export default function SecurityScreens({ navigation }: SecurityScreensProps) {
+  // Arrastar para a esquerda avança, para a direita volta — mesmo destino
+  // dos botões "Próximo passo" e "Voltar" já existentes na tela.
+  const { entranceStyle, imageStyle, contentStyle, sheetStyle, prepareForReturn } = useScreenEntrance();
+  const goToConnect = () => {
+    prepareForReturn();
+    navigation.navigate("Connect");
+  };
+  const swipeHandlers = useSwipeNavigation({
+    onSwipeLeft: goToConnect,
+    onSwipeRight: () => navigation.goBack(),
+  });
+
   return (
-    <View style={styles.root}>
+    <Animated.View style={[styles.root, entranceStyle]} {...swipeHandlers}>
       <SafeAreaView style={styles.safeTop}>
         <View style={styles.header}>
           <Pressable onPress={() => navigation.goBack()} hitSlop={12}>
@@ -44,21 +59,23 @@ export default function SecurityScreens({ navigation }: SecurityScreensProps) {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <Image
+          <Animated.Image
             source={require("../assets/denuncia.png")}
-            style={styles.illustrationImage}
+            style={[styles.illustrationImage, imageStyle]}
             resizeMode="contain"
           />
 
-          <Text style={styles.title}>Denúncia e Segurança</Text>
-          <Text style={styles.subtitle}>
-            Registre denúncias anônimas e configure seus contatos de
-            emergência para alertas imediatos.
-          </Text>
+          <Animated.View style={contentStyle}>
+            <Text style={styles.title}>Denúncia e Segurança</Text>
+            <Text style={styles.subtitle}>
+              Registre denúncias anônimas e configure seus contatos de
+              emergência para alertas imediatos.
+            </Text>
+          </Animated.View>
         </ScrollView>
       </SafeAreaView>
 
-      <View style={styles.sheet}>
+      <Animated.View style={[styles.sheet, sheetStyle]}>
         <View style={styles.cardsRow}>
           <Pressable
             style={styles.cardPressable}
@@ -89,15 +106,15 @@ export default function SecurityScreens({ navigation }: SecurityScreensProps) {
         <View style={styles.buttonWrapper}>
           <PrimaryButton
             label="Próximo passo"
-            onPress={() => navigation.navigate("Connect")}
+            onPress={goToConnect}
           />
         </View>
 
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Text style={styles.backLabel}>Voltar</Text>
         </Pressable>
-      </View>
-    </View>
+      </Animated.View>
+    </Animated.View>
   );
 }
 
@@ -145,6 +162,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     paddingBottom: spacing.lg,
+    minHeight: 300,
+    justifyContent: "center",
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 20,
@@ -153,11 +172,16 @@ const styles = StyleSheet.create({
   },
   cardsRow: {
     flexDirection: "row",
-    gap: spacing.sm,
+    justifyContent: "space-between",
     marginBottom: spacing.md,
   },
-  cardPressable: { flex: 1 },
-  dotsWrapper: { alignItems: "center", marginBottom: spacing.md },
+  cardPressable: { width: "48%" },
+  dotsWrapper: {
+    alignItems: "center",
+    height: 20,
+    justifyContent: "center",
+    marginBottom: spacing.sm,
+  },
   buttonWrapper: {
     width: "55%",
     maxWidth: 260,

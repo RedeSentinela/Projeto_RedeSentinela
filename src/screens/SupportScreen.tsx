@@ -2,6 +2,7 @@ import React from "react";
 
 import {
   View,
+  Animated,
   Text,
   StyleSheet,
   Pressable,
@@ -15,6 +16,8 @@ import { Ionicons } from "@expo/vector-icons";
 import PrimaryButton from "../components/PrimaryButton";
 import ProgressDots from "../components/ProgressDots";
 import { colors, typography, spacing } from "../theme/theme";
+import { useSwipeNavigation } from "../hooks/useSwipeNavigation";
+import { useScreenEntrance } from "../hooks/useScreenEntrance";
 
 type SupportScreenProps = {
   navigation: {
@@ -43,8 +46,20 @@ export default function SupportScreen({
 
   const imageWidth = Math.min(width - 40, 420);
 
+  // Arrastar para a esquerda avança, para a direita volta — mesmo destino
+  // dos botões "Próximo passo" e "Voltar" já existentes na tela.
+  const { entranceStyle, imageStyle, contentStyle, sheetStyle, prepareForReturn } = useScreenEntrance();
+  const goToSecurity = () => {
+    prepareForReturn();
+    navigation.navigate("Security");
+  };
+  const swipeHandlers = useSwipeNavigation({
+    onSwipeLeft: goToSecurity,
+    onSwipeRight: () => navigation.goBack(),
+  });
+
   return (
-    <View style={styles.root}>
+    <Animated.View style={[styles.root, entranceStyle]} {...swipeHandlers}>
 
       {/* ÁREA SUPERIOR */}
       <View style={styles.topContainer}>
@@ -80,9 +95,10 @@ export default function SupportScreen({
           {/* CONTEÚDO PRINCIPAL */}
           <View style={styles.mainContent}>
 
-            <View
+            <Animated.View
               style={[
                 styles.illustrationCard,
+                imageStyle,
                 {
                   width: imageWidth,
                   height: imageHeight,
@@ -94,26 +110,28 @@ export default function SupportScreen({
                 style={styles.illustrationImage}
                 resizeMode="contain"
               />
-            </View>
+            </Animated.View>
 
-            <Text
-              style={[
-                styles.title,
-                isSmallScreen && styles.titleSmall,
-              ]}
-            >
-              Encontre Apoio Especializado
-            </Text>
+            <Animated.View style={contentStyle}>
+              <Text
+                style={[
+                  styles.title,
+                  isSmallScreen && styles.titleSmall,
+                ]}
+              >
+                Encontre Apoio Especializado
+              </Text>
 
-            <Text
-              style={[
-                styles.subtitle,
-                isSmallScreen && styles.subtitleSmall,
-              ]}
-            >
-              Localize ONGs, hospitais e profissionais qualificados
-              em uma rede segura de acolhimento.
-            </Text>
+              <Text
+                style={[
+                  styles.subtitle,
+                  isSmallScreen && styles.subtitleSmall,
+                ]}
+              >
+                Localize ONGs, hospitais e profissionais qualificados
+                em uma rede segura de acolhimento.
+              </Text>
+            </Animated.View>
 
           </View>
 
@@ -121,7 +139,7 @@ export default function SupportScreen({
       </View>
 
       {/* QUADRADO BRANCO */}
-      <View style={styles.sheet}>
+      <Animated.View style={[styles.sheet, sheetStyle]}>
 
         {/* CARD REDE DE APOIO */}
         <View style={styles.infoCard}>
@@ -166,7 +184,7 @@ export default function SupportScreen({
         <View style={styles.buttonWrapper}>
           <PrimaryButton
             label="Próximo passo"
-            onPress={() => navigation.navigate("Security")}
+            onPress={goToSecurity}
           />
         </View>
 
@@ -181,9 +199,9 @@ export default function SupportScreen({
           </Text>
         </Pressable>
 
-      </View>
+      </Animated.View>
 
-    </View>
+    </Animated.View>
   );
 }
 
@@ -313,6 +331,8 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
+    minHeight: 300,
+    justifyContent: "center",
   },
 
   /* CARD DE REDE DE APOIO */

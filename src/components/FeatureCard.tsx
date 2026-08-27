@@ -23,7 +23,8 @@ export default function FeatureCard({ icon, title, subtitle }: FeatureCardProps)
 
 const styles = StyleSheet.create({
   card: {
-    flex: 1,
+    width: "100%",
+    height: 148,
     backgroundColor: colors.cardWhite,
     borderRadius: 16,
     padding: spacing.md,
@@ -52,5 +53,6 @@ const styles = StyleSheet.create({
   subtitle: {
     ...typography.body,
     fontSize: 12,
+    lineHeight: 15,
   },
 });

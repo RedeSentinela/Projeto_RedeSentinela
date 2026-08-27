@@ -36,9 +36,9 @@ type Contact = {
 const INITIAL_CONTACTS: Contact[] = [
   {
     id: "1",
-    name: "DUDA",
-    relation: "Irmã",
-    phone: "(11) 96577-0776",
+    name: "TESTE 1",
+    relation: "TESTE 1",
+    phone: "(11) 94349-4882",
     avatarBg: colors.avatarGreen,
   },
   

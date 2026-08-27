@@ -38,7 +38,7 @@ const INITIAL_CONTACTS: Contact[] = [
     id: "1",
     name: "TESTE 1",
     relation: "TESTE 1",
-    phone: "(11) 94349-4882",
+    phone: "(##) #####-####",
     avatarBg: colors.avatarGreen,
   },
   

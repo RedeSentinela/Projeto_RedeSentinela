@@ -14,7 +14,10 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.redesentinela.app"
+      "bundleIdentifier": "com.redesentinela.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Usamos sua localização apenas para incluí-la no SMS de alerta enviado aos seus contatos de confiança."
+      }
     },
     "android": {
       "package": "com.redesentinela.app",
@@ -25,6 +28,14 @@
     "web": {
       "bundler": "metro",
       "favicon": "./src/assets/RedeSentinela.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Usamos sua localização apenas para incluí-la no SMS de alerta enviado aos seus contatos de confiança."
+        }
+      ]
+    ]
   
 }}

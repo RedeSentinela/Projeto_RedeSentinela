@@ -9,8 +9,11 @@ import {
   TextInput,
   Alert,
   Linking,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as SMS from "expo-sms";
+import * as Location from "expo-location";
 import BottomNav from "../components/BottomNav";
 import { colors, typography, spacing } from "../theme/theme";
 
@@ -33,30 +36,18 @@ type Contact = {
 const INITIAL_CONTACTS: Contact[] = [
   {
     id: "1",
-    name: "Ana Silva",
+    name: "DUDA",
     relation: "Irmã",
-    phone: "(11) 9876-5432",
+    phone: "(11) 96577-0776",
     avatarBg: colors.avatarGreen,
   },
-  {
-    id: "2",
-    name: "Beatriz Oliveira",
-    relation: "Amiga",
-    phone: "(11) 9123-4567",
-    avatarBg: colors.avatarGreen,
-  },
-  {
-    id: "3",
-    name: "Carla Mendes",
-    relation: "Vizinha",
-    phone: "(11) 9555-1234",
-    avatarBg: colors.avatarPeach,
-  },
+  
 ];
 
 export default function ContactsScreen({ navigation }: ContactsScreenProps) {
   const [contacts, setContacts] = useState<Contact[]>(INITIAL_CONTACTS);
   const [query, setQuery] = useState<string>("");
+  const [sendingAlert, setSendingAlert] = useState(false);
 
   const filteredContacts = contacts.filter((c) =>
     c.name.toLowerCase().includes(query.trim().toLowerCase())
@@ -70,19 +61,104 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
   }
 
   function handleAlertContacts() {
+    if (contacts.length === 0) {
+      Alert.alert(
+        "Nenhum contato cadastrado",
+        "Cadastre ao menos um contato de confiança antes de enviar o alerta."
+      );
+      return;
+    }
+
     Alert.alert(
       "Alertar contatos",
-      "Seus contatos de confiança serão notificados via SMS e notificação push com sua localização em tempo real. Deseja continuar?",
+      "Um SMS de alerta com sua localização será enviado aos seus contatos " +
+        "de confiança. O envio funciona mesmo sem internet, usando apenas o " +
+        "sinal de celular e o GPS do aparelho. Deseja continuar?",
       [
         { text: "Cancelar", style: "cancel" },
         {
           text: "Alertar agora",
           style: "destructive",
-          onPress: () =>
-            Alert.alert("Alerta enviado", "Seus contatos foram notificados."),
+          onPress: sendAlertSMS,
         },
       ]
     );
+  }
+
+  async function sendAlertSMS() {
+    setSendingAlert(true);
+    try {
+      // Verifica se o aparelho é capaz de enviar SMS. Isso não depende de
+      // internet: o SMS trafega pelo canal de sinalização da rede celular
+      // (a mesma usada para ligações), então funciona sem Wi-Fi/dados móveis.
+      const isAvailable = await SMS.isAvailableAsync();
+
+      if (!isAvailable) {
+        Alert.alert(
+          "SMS indisponível neste dispositivo",
+          "Não foi possível encontrar um app de SMS ativo. Verifique se há " +
+            "um chip com sinal de celular inserido no aparelho."
+        );
+        return;
+      }
+
+      const numbers = contacts.map((c) => c.phone);
+      const locationLine = await getLocationLine();
+
+      const message =
+        "🚨 Alerta Rede Sentinela: preciso de ajuda. Esta mensagem foi " +
+        "enviada automaticamente pelo app. Por favor, entre em contato " +
+        "comigo assim que possível." +
+        (locationLine ? `\nMinha localização: ${locationLine}` : "");
+
+      // Abre o app nativo de SMS do sistema já com destinatários e mensagem
+      // preenchidos. Quem envia de fato é o app de mensagens do celular,
+      // usando o plano de SMS da operadora — sem custo para o app em si.
+      const { result } = await SMS.sendSMSAsync(numbers, message);
+
+      if (result === "sent" || result === "unknown") {
+        // No Android o SO frequentemente retorna "unknown" mesmo quando o
+        // SMS foi enviado com sucesso, pois não há confirmação de entrega.
+        Alert.alert("Alerta enviado", "Seus contatos foram notificados por SMS.");
+      } else if (result === "cancelled") {
+        Alert.alert("Envio cancelado", "O envio do SMS foi cancelado.");
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert(
+        "Erro ao enviar",
+        "Não foi possível abrir o envio de SMS. Tente novamente."
+      );
+    } finally {
+      setSendingAlert(false);
+    }
+  }
+
+  // Obtém a localização atual e devolve um link de mapa para embutir no SMS.
+  // O GPS funciona via satélite, sem depender de internet ou dados móveis —
+  // só a abertura do link pelo destinatário é que vai precisar de internet.
+  // Se o usuário negar a permissão ou o GPS não responder a tempo, retorna
+  // null e o alerta é enviado normalmente, apenas sem a localização.
+  async function getLocationLine(): Promise<string | null> {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return null;
+
+      const position = await Promise.race([
+        Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        }),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
+      ]);
+
+      if (!position) return null;
+
+      const { latitude, longitude } = position.coords;
+      return `https://maps.google.com/?q=${latitude},${longitude}`;
+    } catch (error) {
+      console.warn("Não foi possível obter a localização:", error);
+      return null;
+    }
   }
 
   function handleCallPolice() {
@@ -149,12 +225,19 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
             <Pressable
               style={({ pressed }) => [
                 styles.alertButton,
-                pressed && { opacity: 0.9 },
+                (pressed || sendingAlert) && { opacity: 0.9 },
               ]}
               onPress={handleAlertContacts}
+              disabled={sendingAlert}
             >
-              <Ionicons name="notifications" size={18} color="#FFFFFF" />
-              <Text style={styles.alertButtonLabel}>Alertar Contatos</Text>
+              {sendingAlert ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Ionicons name="notifications" size={18} color="#FFFFFF" />
+              )}
+              <Text style={styles.alertButtonLabel}>
+                {sendingAlert ? "Enviando..." : "Alertar Contatos"}
+              </Text>
             </Pressable>
 
             <Pressable
@@ -241,8 +324,12 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
               style={{ marginTop: 1 }}
             />
             <Text style={styles.infoText}>
-              Seus contatos serão alertados via SMS e notificação push com sua
-              localização em tempo real caso você ative o alerta.
+              Ao tocar em "Alertar Contatos", um SMS com sua localização
+              atual é enviado a todos os contatos do seu círculo de
+              confiança. O envio funciona mesmo sem internet: o SMS usa o
+              sinal de celular (rede da operadora) e a localização usa o GPS
+              do aparelho — nenhum dos dois depende de Wi-Fi ou dados
+              móveis.
             </Text>
           </View>
         </ScrollView>

@@ -1,0 +1,62 @@
+.welcome-img{
+  margin-top: -80px;
+}
+
+.welcome-pai{
+  flex: 1;
+  min-height: 100%;
+  background: var(--light-olive);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 32px;
+  gap: 20px;
+}
+
+
+.titulo-w {
+  font-family: "Familjen Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 26px;
+  margin-top: -10px;
+  color: var(--dark-white);
+}
+
+.subtitulo-w {
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--dark-white);
+  max-width: 85%;
+  margin-bottom: 20px;
+}
+
+.rs-subtitle--light {
+  color: #EDEFE0;
+}
+
+.nextStep-btn {
+  font-family: "Familjen Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+
+  margin-top: 20px;
+
+  color: var(--dark-white);
+  background: var(--brown);
+
+  border: none;
+  border-radius: 28px;
+  padding: 14px 36px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.nextStep-btn:hover {
+  background: var(--dark-brown);
+}
+
+.nextStep-btn:active {
+  transform: scale(0.98);
+}

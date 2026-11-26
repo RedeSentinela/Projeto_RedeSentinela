@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react"
+import { api, salvarToken } from "../services/api"
 import { View, Text, Image, StyleSheet } from "react-native";
 import AuthLayout from "../components/AuthLayout";
 import FormField from "../components/FormField";
@@ -27,10 +28,21 @@ export default function SignupUserScreen({ navigation }: SignupUserScreenProps) 
     senha: "",
   });
 
-  function onSubmit() {
-    console.log("Cadastrando:", form);
-    // TODO: chamada real pra API de cadastro
-    // zera a pilha: depois de entrar, o "voltar" não leva de novo ao login
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState("");
+
+  async function onSubmit() {
+    setEnviando(true);
+    setErro("");
+    try {
+      const r = await api<{ token: string }>("/auth/usuario/login", { body: form });
+      salvarToken(r.token); // a partir daqui, a usuária está logada
+    } catch (e) {
+      setErro((e as Error).message); // ex: "Esse email ou CNPJ já está cadastrado."
+      return; // não sai da tela se deu erro
+    } finally {
+      setEnviando(false);
+    }
     navigation.reset({ index: 0, routes: [{ name: "Welcome" }] });
   }
 
@@ -78,7 +90,12 @@ export default function SignupUserScreen({ navigation }: SignupUserScreenProps) 
         onChangeText={updateField("senha")}
       />
 
-      <AuthButton label="Criar nova conta" onPress={onSubmit} disabled={!formValido} />
+      <AuthButton
+        label={enviando ? "Entrando..." : "Entrar"}
+        onPress={onSubmit}
+        disabled={!formValido || enviando}
+        erro={erro}
+      />
 
       <SwitchLink
         texto="Você já tem uma conta?"

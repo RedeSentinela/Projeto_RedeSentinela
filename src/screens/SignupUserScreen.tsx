@@ -35,7 +35,7 @@ export default function SignupUserScreen({ navigation }: SignupUserScreenProps) 
     setEnviando(true);
     setErro("");
     try {
-      const r = await api<{ token: string }>("/auth/usuario/login", { body: form });
+      const r = await api<{ token: string }>("/auth/usuario/cadastro", { body: form });
       salvarToken(r.token); // a partir daqui, a usuária está logada
     } catch (e) {
       setErro((e as Error).message); // ex: "Esse email ou CNPJ já está cadastrado."

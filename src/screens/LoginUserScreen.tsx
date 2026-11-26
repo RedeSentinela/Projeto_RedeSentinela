@@ -26,12 +26,23 @@ export default function LoginUserScreen({ navigation }: LoginUserScreenProps) {
     senha: "",
   });
 
-  function onSubmit() {
-    console.log("Fazendo login:", form);
-    // TODO: chamada real pra API de login
-    // zera a pilha: depois de entrar, o "voltar" não leva de novo ao login
-    navigation.reset({ index: 0, routes: [{ name: "Welcome" }] });
+  const [enviando, setEnviando] = useState(false);
+const [erro, setErro] = useState("");
+
+async function onSubmit() {
+  setEnviando(true);
+  setErro("");
+  try {
+    const r = await api<{ token: string }>("/auth/usuario/login", { body: form });
+    salvarToken(r.token);
+  } catch (e) {
+    setErro((e as Error).message);
+    return;
+  } finally {
+    setEnviando(false);
   }
+  navigation.reset({ index: 0, routes: [{ name: "Welcome" }] });
+}
 
   return (
     <AuthLayout

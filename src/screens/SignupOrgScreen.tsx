@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { api, salvarToken } from "../services/api";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AuthLayout from "../components/AuthLayout";
@@ -44,10 +45,21 @@ export default function SignupOrgScreen({ navigation }: SignupOrgScreenProps) {
         ? preenchido("telefone", "emailContato", "endereco")
         : preenchido("senha");
 
-  function onSubmit() {
-    console.log("Cadastrando organização:", form);
-    // TODO: chamada real pra API
-    // zera a pilha: depois de entrar, o "voltar" não leva de novo ao login
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState("");
+
+  async function onSubmit() {
+    setEnviando(true);
+    setErro("");
+    try {
+      const r = await api<{ token: string }>("/auth/organizacao/cadastro", { body: form });
+      salvarToken(r.token);
+    } catch (e) {
+      setErro((e as Error).message);
+      return;
+    } finally {
+      setEnviando(false);
+    }
     navigation.reset({ index: 0, routes: [{ name: "RiskAnalysis" }] });
   }
 
@@ -155,7 +167,12 @@ export default function SignupOrgScreen({ navigation }: SignupOrgScreenProps) {
         {step < 3 ? (
           <AuthButton label="Próximo" onPress={() => setStep(step + 1)} disabled={!stepValido} />
         ) : (
-          <AuthButton label="Finalizar cadastro" onPress={onSubmit} disabled={!stepValido} />
+          <AuthButton
+            label={enviando ? "Cadastrando..." : "Finalizar cadastro"}
+            onPress={onSubmit}
+            disabled={!stepValido || enviando}
+            erro={erro}
+          />
         )}
       </View>
 

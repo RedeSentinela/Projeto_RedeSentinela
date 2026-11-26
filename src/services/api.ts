@@ -28,4 +28,3 @@ export async function api<T>(caminho: string, opcoes: { method?: string; body?: 
   return dados as T;
 }
 
-const r = await api<{ token: string }>("/auth/usuario/login", { body: { email, senha } });

@@ -3,6 +3,9 @@ import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, spacing } from "../theme/theme";
+import { useNavigation } from "@react-navigation/native";
+import { api, salvarToken } from "../services/api";
+
 
 type OcorrenciaRegiao = {
   regiao: string;
@@ -41,6 +44,13 @@ export default function RiskAnalysisScreen() {
     // const dados = await chamar(`/api/ocorrencias?filtro=${filtro}&dias=30`);
   }
 
+  const nav = useNavigation<any>();
+
+  function sair() {
+    salvarToken(null);
+    nav.reset({ index: 0, routes: [{ name: "UserType" }] });
+  }
+
   return (
     <SafeAreaView style={styles.root}>
       <View style={styles.header}>
@@ -59,13 +69,8 @@ export default function RiskAnalysisScreen() {
           <View style={styles.filtroLinha}>
             <Text style={styles.filtroLabel}>Filtrar por:</Text>
             {/* toque no chip alterna entre Cidade / Estado / Região */}
-            <Pressable
-              style={styles.chip}
-              onPress={() => setFiltro((filtro + 1) % FILTROS.length)}
-              accessibilityRole="button"
-              accessibilityLabel={`Filtrar por ${FILTROS[filtro]}`}
-            >
-              <Text style={styles.chipTexto}>{FILTROS[filtro]}</Text>
+            <Pressable style={styles.avatar} onPress={sair} accessibilityLabel="Sair da conta">
+              <Ionicons name="log-out-outline" size={18} color={colors.brownAccent} />
             </Pressable>
           </View>
           <Pressable

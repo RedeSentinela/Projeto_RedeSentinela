@@ -16,6 +16,8 @@ import * as SMS from "expo-sms";
 import * as Location from "expo-location";
 import BottomNav from "../components/BottomNav";
 import { colors, typography, spacing } from "../theme/theme";
+import { useNavigation } from "@react-navigation/native";
+import { salvarToken } from "../services/api";
 
 // Tipagem simples e local, sem precisar de arquivo separado
 type ContactsScreenProps = {
@@ -41,7 +43,7 @@ const INITIAL_CONTACTS: Contact[] = [
     phone: "(##) #####-####",
     avatarBg: colors.avatarGreen,
   },
-  
+
 ];
 
 export default function ContactsScreen({ navigation }: ContactsScreenProps) {
@@ -72,8 +74,8 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
     Alert.alert(
       "Alertar contatos",
       "Um SMS de alerta com sua localização será enviado aos seus contatos " +
-        "de confiança. O envio funciona mesmo sem internet, usando apenas o " +
-        "sinal de celular e o GPS do aparelho. Deseja continuar?",
+      "de confiança. O envio funciona mesmo sem internet, usando apenas o " +
+      "sinal de celular e o GPS do aparelho. Deseja continuar?",
       [
         { text: "Cancelar", style: "cancel" },
         {
@@ -97,7 +99,7 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
         Alert.alert(
           "SMS indisponível neste dispositivo",
           "Não foi possível encontrar um app de SMS ativo. Verifique se há " +
-            "um chip com sinal de celular inserido no aparelho."
+          "um chip com sinal de celular inserido no aparelho."
         );
         return;
       }
@@ -193,6 +195,13 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
     );
   }
 
+  const nav = useNavigation<any>();
+
+  function sair() {
+    salvarToken(null);
+    nav.reset({ index: 0, routes: [{ name: "UserType" }] });
+  }
+
   return (
     <View style={styles.root}>
       <SafeAreaView edges={["top", "bottom"]} style={styles.flex}>
@@ -210,8 +219,8 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
               />
               <Text style={styles.headerTitle}>Meus Contatos</Text>
             </View>
-            <Pressable hitSlop={12}>
-              <Ionicons name="settings-outline" size={22} color={colors.textDark} />
+            <Pressable hitSlop={12} onPress={sair} accessibilityLabel="Sair da conta">
+              <Ionicons name="log-out-outline" size={22} color={colors.textDark} />
             </Pressable>
           </View>
 

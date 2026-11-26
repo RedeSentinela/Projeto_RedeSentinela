@@ -173,3 +173,33 @@ rotas.post("/registros", loginOpcional, async (req, res) => {
   );
   res.status(201).json(r.rows[0]);
 });
+
+// GET /analise?dias=30 -> números dos cards e do gráfico
+rotas.get("/analise", exigirLogin("organizacao"), async (req, res) => {
+  const dias = Math.min(Math.max(Number(req.query.dias) || 30, 1), 365);
+
+  const [total, area, unidades, regioes] = await Promise.all([
+    db.query("SELECT COUNT(*)::int AS n FROM ocorrencia WHERE data >= CURRENT_DATE - $1::int", [dias]),
+    db.query(
+      `SELECT cidade, uf, zona, COUNT(*)::int AS n FROM ocorrencia
+        WHERE data >= CURRENT_DATE - $1::int
+        GROUP BY cidade, uf, zona ORDER BY n DESC LIMIT 1`,
+      [dias]
+    ),
+    db.query("SELECT COUNT(*)::int AS n FROM organizacao WHERE ativo"),
+    db.query(
+      `SELECT regiao, COUNT(*)::int AS quantidade FROM ocorrencia
+        WHERE data >= CURRENT_DATE - $1::int
+        GROUP BY regiao ORDER BY quantidade DESC`,
+      [dias]
+    ),
+  ]);
+
+  const a = area.rows[0];
+  res.json({
+    totalOcorrencias: total.rows[0].n,
+    areaMaisVulneravel: a ? { cidade: a.cidade, uf: a.uf, zona: a.zona } : null,
+    unidadesAtivas: unidades.rows[0].n,
+    porRegiao: regioes.rows,
+  });
+});

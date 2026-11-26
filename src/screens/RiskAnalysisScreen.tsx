@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -6,50 +6,62 @@ import { colors, spacing } from "../theme/theme";
 import { useNavigation } from "@react-navigation/native";
 import { api, salvarToken } from "../services/api";
 
-
-type OcorrenciaRegiao = {
-  regiao: string;
-  quantidade: number;
-  cor: string;
+type Analise = {
+  totalOcorrencias: number;
+  areaMaisVulneravel: { cidade: string; uf: string; zona: string | null } | null;
+  unidadesAtivas: number;
+  porRegiao: { regiao: string; quantidade: number }[];
 };
 
-// dados de exemplo MOCKADOS — depois substituímos por uma chamada real à API
-const OCORRENCIAS_MOCK: OcorrenciaRegiao[] = [
-  { regiao: "Sudeste", quantidade: 542, cor: colors.brownAccent },
-  { regiao: "Nordeste", quantidade: 310, cor: colors.oliveDark },
-  { regiao: "Sul", quantidade: 215, cor: "#4A5A2A" },
-  { regiao: "Centro-Oeste", quantidade: 130, cor: "#F2B872" },
-  { regiao: "Norte", quantidade: 97, cor: "#D3C8BA" },
-];
+// cor de cada região no gráfico
+const CORES: Record<string, string> = {
+  Sudeste: colors.brownAccent,
+  Nordeste: colors.oliveDark,
+  Sul: "#4A5A2A",
+  "Centro-Oeste": "#F2B872",
+  Norte: "#D3C8BA",
+};
 
 const FILTROS = ["Cidade", "Estado", "Região"];
-
-const RESUMO = [
-  { icon: "warning-outline", iconBg: colors.inputBg, extra: "+12% este mês", label: "Total Occurrences", valor: "1,284", cor: colors.brownAccent },
-  { icon: "location-outline", iconBg: "#E2F5B4", extra: "Zona Sul", label: "Most Vulnerable Area", valor: "São Paulo, SP", cor: colors.oliveDark },
-  { icon: "shield-checkmark-outline", iconBg: colors.inputBg, extra: "8 Novas Unidades", label: "Active Support Units", valor: "142", cor: colors.oliveDark },
-] as const;
+const DIAS = 30;
 
 // Painel da organização: "Análise de Áreas de Risco"
 export default function RiskAnalysisScreen() {
-  const [filtro, setFiltro] = useState(0);
-  const [ocorrencias] = useState<OcorrenciaRegiao[]>(OCORRENCIAS_MOCK);
-
-  // a maior barra ocupa 85% do trilho, igual ao layout
-  const maior = Math.max(...ocorrencias.map((o) => o.quantidade));
-
-  function filtrarPeriodo() {
-    console.log("Filtrando por:", FILTROS[filtro], "- últimos 30 dias");
-    // TODO: chamada real pra API, algo como:
-    // const dados = await chamar(`/api/ocorrencias?filtro=${filtro}&dias=30`);
-  }
-
   const nav = useNavigation<any>();
 
+  // sair: apaga o token e volta para a escolha de perfil, sem histórico
   function sair() {
     salvarToken(null);
     nav.reset({ index: 0, routes: [{ name: "UserType" }] });
   }
+
+  const [filtro, setFiltro] = useState(0);
+  const [dados, setDados] = useState<Analise | null>(null);
+  const [erro, setErro] = useState("");
+
+  async function carregar() {
+    setErro("");
+    try {
+      setDados(await api<Analise>(`/analise?dias=${DIAS}`));
+    } catch (e) {
+      setErro((e as Error).message);
+    }
+  }
+
+  useEffect(() => {
+    carregar();
+  }, []);
+
+  const ocorrencias = dados?.porRegiao ?? [];
+  // a maior barra ocupa 85% do trilho, igual ao layout
+  const maior = Math.max(1, ...ocorrencias.map((o) => o.quantidade));
+  const area = dados?.areaMaisVulneravel;
+
+  const RESUMO = [
+    { icon: "warning-outline", iconBg: colors.inputBg, extra: `últimos ${DIAS} dias`, label: "Total Occurrences", valor: dados ? dados.totalOcorrencias.toLocaleString("pt-BR") : "–", cor: colors.brownAccent },
+    { icon: "location-outline", iconBg: "#E2F5B4", extra: area?.zona ?? "", label: "Most Vulnerable Area", valor: area ? `${area.cidade}, ${area.uf}` : "–", cor: colors.oliveDark },
+    { icon: "shield-checkmark-outline", iconBg: colors.inputBg, extra: "cadastradas", label: "Active Support Units", valor: dados ? String(dados.unidadesAtivas) : "–", cor: colors.oliveDark },
+  ] as const;
 
   return (
     <SafeAreaView style={styles.root}>
@@ -57,25 +69,31 @@ export default function RiskAnalysisScreen() {
         <Ionicons name="menu" size={24} color={colors.textDark} />
         <Text style={styles.logo}>SafeSpace</Text>
         <Ionicons name="notifications-outline" size={22} color={colors.textDark} />
-        <View style={styles.avatar}>
-          <Ionicons name="person-outline" size={18} color={colors.brownAccent} />
-        </View>
+        <Pressable style={styles.avatar} onPress={sair} accessibilityLabel="Sair da conta">
+          <Ionicons name="log-out-outline" size={18} color={colors.brownAccent} />
+        </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.titulo}>Análise de Áreas de Risco</Text>
+        {erro ? <Text style={styles.erro}>{erro}</Text> : null}
 
         <View style={[styles.card, styles.filtros]}>
           <View style={styles.filtroLinha}>
             <Text style={styles.filtroLabel}>Filtrar por:</Text>
             {/* toque no chip alterna entre Cidade / Estado / Região */}
-            <Pressable style={styles.avatar} onPress={sair} accessibilityLabel="Sair da conta">
-              <Ionicons name="log-out-outline" size={18} color={colors.brownAccent} />
+            <Pressable
+              style={styles.chip}
+              onPress={() => setFiltro((filtro + 1) % FILTROS.length)}
+              accessibilityRole="button"
+              accessibilityLabel={`Filtrar por ${FILTROS[filtro]}`}
+            >
+              <Text style={styles.chipTexto}>{FILTROS[filtro]}</Text>
             </Pressable>
           </View>
           <Pressable
             style={({ pressed }) => [styles.periodo, pressed && styles.pressed]}
-            onPress={filtrarPeriodo}
+            onPress={carregar}
             accessibilityRole="button"
           >
             <Ionicons name="calendar-outline" size={14} color="#fff" />
@@ -115,7 +133,7 @@ export default function RiskAnalysisScreen() {
                 <View
                   style={[
                     styles.preenchida,
-                    { width: `${(o.quantidade / maior) * 85}%`, backgroundColor: o.cor },
+                    { width: `${(o.quantidade / maior) * 85}%`, backgroundColor: CORES[o.regiao] ?? colors.oliveLight },
                   ]}
                 />
               </View>
@@ -150,6 +168,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   scroll: { padding: 20, paddingBottom: 40 },
+  erro: { color: colors.dangerRed, fontSize: 14, marginBottom: 12 },
   titulo: { fontSize: 24, fontWeight: "700", color: colors.brownAccent, marginBottom: 16 },
   card: {
     backgroundColor: colors.creamBg,

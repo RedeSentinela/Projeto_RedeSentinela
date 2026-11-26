@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,15 +9,16 @@ import {
   Alert,
   Linking,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as SMS from "expo-sms";
 import * as Location from "expo-location";
 import BottomNav from "../components/BottomNav";
-import { colors, typography, spacing } from "../theme/theme";
 import { useNavigation } from "@react-navigation/native";
-import { salvarToken } from "../services/api";
+import { api, salvarToken } from "../services/api";
+import { colors, typography, spacing } from "../theme/theme";
 
 // Tipagem simples e local, sem precisar de arquivo separado
 type ContactsScreenProps = {
@@ -34,20 +35,53 @@ type Contact = {
   avatarBg: string;
 };
 
-// Dados de exemplo — substitua pela integração real (API / storage local)
-const INITIAL_CONTACTS: Contact[] = [
-  {
-    id: "1",
-    name: "TESTE 1",
-    relation: "TESTE 1",
-    phone: "(##) #####-####",
-    avatarBg: colors.avatarGreen,
-  },
+type ContatoApi = { id: number; nome: string; telefone: string; relacao: string | null };
 
-];
+const CORES_AVATAR = [colors.avatarGreen, colors.avatarPeach];
+
+function paraContato(c: ContatoApi, i: number): Contact {
+  return {
+    id: String(c.id),
+    name: c.nome,
+    relation: c.relacao ?? "Contato",
+    phone: c.telefone,
+    avatarBg: CORES_AVATAR[i % CORES_AVATAR.length],
+  };
+}
+
+// Alert com botões não funciona na versão web, então lá usamos o confirm do navegador
+function confirmar(titulo: string, texto: string, aoConfirmar: () => void) {
+  if (Platform.OS === "web") {
+    if (window.confirm(`${titulo}\n\n${texto}`)) aoConfirmar();
+    return;
+  }
+  Alert.alert(titulo, texto, [
+    { text: "Cancelar", style: "cancel" },
+    { text: "Remover", style: "destructive", onPress: aoConfirmar },
+  ]);
+}
 
 export default function ContactsScreen({ navigation }: ContactsScreenProps) {
-  const [contacts, setContacts] = useState<Contact[]>(INITIAL_CONTACTS);
+  const nav = useNavigation<any>();
+
+  // sair: apaga o token e volta para a escolha de perfil, sem histórico
+  function sair() {
+    salvarToken(null);
+    nav.reset({ index: 0, routes: [{ name: "UserType" }] });
+  }
+
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [erro, setErro] = useState("");
+  const [mostrarForm, setMostrarForm] = useState(false);
+  const [novo, setNovo] = useState({ nome: "", telefone: "", relacao: "" });
+  const [salvando, setSalvando] = useState(false);
+
+  // carrega os contatos da usuária logada
+  useEffect(() => {
+    api<ContatoApi[]>("/contatos")
+      .then((lista) => setContacts(lista.map(paraContato)))
+      .catch((e: Error) => setErro(e.message));
+  }, []);
   const [query, setQuery] = useState<string>("");
   const [sendingAlert, setSendingAlert] = useState(false);
 
@@ -74,8 +108,8 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
     Alert.alert(
       "Alertar contatos",
       "Um SMS de alerta com sua localização será enviado aos seus contatos " +
-      "de confiança. O envio funciona mesmo sem internet, usando apenas o " +
-      "sinal de celular e o GPS do aparelho. Deseja continuar?",
+        "de confiança. O envio funciona mesmo sem internet, usando apenas o " +
+        "sinal de celular e o GPS do aparelho. Deseja continuar?",
       [
         { text: "Cancelar", style: "cancel" },
         {
@@ -99,7 +133,7 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
         Alert.alert(
           "SMS indisponível neste dispositivo",
           "Não foi possível encontrar um app de SMS ativo. Verifique se há " +
-          "um chip com sinal de celular inserido no aparelho."
+            "um chip com sinal de celular inserido no aparelho."
         );
         return;
       }
@@ -170,8 +204,22 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
   }
 
   function handleAddNew() {
-    // TODO: abrir formulário/tela de cadastro de novo contato de confiança
-    Alert.alert("Adicionar novo", "Abra o formulário para cadastrar um novo contato de confiança.");
+    setMostrarForm((v) => !v);
+  }
+
+  async function salvarNovo() {
+    setSalvando(true);
+    setErro("");
+    try {
+      const criado = await api<ContatoApi>("/contatos", { body: novo });
+      setContacts((prev) => [...prev, paraContato(criado, prev.length)]);
+      setNovo({ nome: "", telefone: "", relacao: "" });
+      setMostrarForm(false);
+    } catch (e) {
+      setErro((e as Error).message);
+    } finally {
+      setSalvando(false);
+    }
   }
 
   function handleEdit(contact: Contact) {
@@ -180,26 +228,18 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
   }
 
   function handleDelete(contact: Contact) {
-    Alert.alert(
+    confirmar(
       "Remover contato",
       `Deseja remover ${contact.name} do seu círculo de confiança?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Remover",
-          style: "destructive",
-          onPress: () =>
-            setContacts((prev) => prev.filter((c) => c.id !== contact.id)),
-        },
-      ]
+      async () => {
+        try {
+          await api(`/contatos/${contact.id}`, { method: "DELETE" });
+          setContacts((prev) => prev.filter((c) => c.id !== contact.id));
+        } catch (e) {
+          setErro((e as Error).message);
+        }
+      }
     );
-  }
-
-  const nav = useNavigation<any>();
-
-  function sair() {
-    salvarToken(null);
-    nav.reset({ index: 0, routes: [{ name: "UserType" }] });
   }
 
   return (
@@ -316,6 +356,47 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
 
           {filteredContacts.length === 0 && (
             <Text style={styles.emptyText}>Nenhum contato encontrado.</Text>
+          )}
+
+          {erro ? <Text style={styles.erroText}>{erro}</Text> : null}
+
+          {/* FORMULÁRIO DE NOVO CONTATO */}
+          {mostrarForm && (
+            <View style={styles.formCard}>
+              <TextInput
+                style={styles.formInput}
+                placeholder="Nome"
+                placeholderTextColor={colors.textMuted}
+                value={novo.nome}
+                onChangeText={(nome) => setNovo((n) => ({ ...n, nome }))}
+                accessibilityLabel="Nome do contato"
+              />
+              <TextInput
+                style={styles.formInput}
+                placeholder="Telefone (com DDD)"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="phone-pad"
+                value={novo.telefone}
+                onChangeText={(telefone) => setNovo((n) => ({ ...n, telefone }))}
+                accessibilityLabel="Telefone do contato"
+              />
+              <TextInput
+                style={styles.formInput}
+                placeholder="Relação (ex: mãe, amiga)"
+                placeholderTextColor={colors.textMuted}
+                value={novo.relacao}
+                onChangeText={(relacao) => setNovo((n) => ({ ...n, relacao }))}
+                accessibilityLabel="Relação com o contato"
+              />
+              <Pressable
+                style={[styles.formButton, (salvando || !novo.nome.trim() || !novo.telefone.trim()) && { opacity: 0.5 }]}
+                onPress={salvarNovo}
+                disabled={salvando || !novo.nome.trim() || !novo.telefone.trim()}
+                accessibilityRole="button"
+              >
+                <Text style={styles.formButtonLabel}>{salvando ? "Salvando..." : "Salvar contato"}</Text>
+              </Pressable>
+            </View>
           )}
 
           {/* ADICIONAR NOVO */}
@@ -477,6 +558,31 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   addNewLabel: { fontSize: 14, fontWeight: "700", color: colors.textDark },
+  erroText: { color: colors.dangerRed, fontSize: 14, marginBottom: spacing.sm },
+  formCard: {
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: 14,
+    padding: spacing.md,
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  formInput: {
+    backgroundColor: colors.inputBg,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: colors.textDark,
+  },
+  formButton: {
+    backgroundColor: colors.brownAccent,
+    borderRadius: 24,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  formButtonLabel: { color: "#FFFFFF", fontWeight: "700", fontSize: 15 },
 
   infoBox: {
     flexDirection: "row",

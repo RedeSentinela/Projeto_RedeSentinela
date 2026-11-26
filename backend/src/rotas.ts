@@ -112,3 +112,64 @@ rotas.post("/auth/organizacao/login", async (req, res) => {
   const token = gerarToken({ contaId: linha.conta_id, tipo: "organizacao", id: linha.organizacao_id });
   res.json({ token, organizacao: { id: linha.organizacao_id, nome: linha.nome } });
 });
+
+// GET /organizacoes?bairro=itaquera  (procura no bairro e no endereço)
+rotas.get("/organizacoes", async (req, res) => {
+  const termo = `%${String(req.query.bairro ?? "").trim()}%`;
+  const r = await db.query(
+    `SELECT organizacao_id AS id, nome, endereco, desc_servicos AS "descServicos"
+       FROM organizacao
+      WHERE ativo AND (bairro ILIKE $1 OR endereco ILIKE $1)
+      ORDER BY nome LIMIT 50`,
+    [termo]
+  );
+  res.json(r.rows);
+});
+
+rotas.get("/contatos", exigirLogin("usuario"), async (_req, res) => {
+  const { id } = res.locals.sessao as Sessao;
+  const r = await db.query(
+    "SELECT contato_id AS id, nome, telefone, relacao FROM contato_emergencia WHERE usuario_id = $1 ORDER BY nome",
+    [id]
+  );
+  res.json(r.rows);
+});
+
+rotas.post("/contatos", exigirLogin("usuario"), async (req, res) => {
+  const vazios = faltando(req.body, ["nome", "telefone"]);
+  if (vazios.length) return void res.status(400).json({ erro: `Preencha: ${vazios.join(", ")}` });
+
+  const { id } = res.locals.sessao as Sessao;
+  const r = await db.query(
+    `INSERT INTO contato_emergencia (usuario_id, nome, telefone, relacao)
+     VALUES ($1, $2, $3, $4) RETURNING contato_id AS id, nome, telefone, relacao`,
+    [id, req.body.nome.trim(), req.body.telefone.trim(), req.body.relacao?.trim() || null]
+  );
+  res.status(201).json(r.rows[0]);
+});
+
+rotas.delete("/contatos/:id", exigirLogin("usuario"), async (req, res) => {
+  const { id } = res.locals.sessao as Sessao;
+  // só apaga se o contato for da própria usuária
+  const r = await db.query("DELETE FROM contato_emergencia WHERE contato_id = $1 AND usuario_id = $2", [
+    Number(req.params.id),
+    id,
+  ]);
+  if (!r.rowCount) return void res.status(404).json({ erro: "Contato não encontrado." });
+  res.status(204).end();
+});
+
+// login opcional: sem token, o relato fica anônimo
+rotas.post("/registros", loginOpcional, async (req, res) => {
+  if (faltando(req.body, ["descricao"]).length) {
+    return void res.status(400).json({ erro: "Descreva o que aconteceu." });
+  }
+  const sessao = res.locals.sessao as Sessao | null;
+  const usuarioId = sessao?.tipo === "usuario" ? sessao.id : null;
+  const r = await db.query(
+    `INSERT INTO registro_seguro (usuario_id, descricao, local, tem_anexo)
+     VALUES ($1, $2, $3, $4) RETURNING registro_id AS id, criado_em AS "criadoEm"`,
+    [usuarioId, req.body.descricao.trim(), req.body.local?.trim() || null, req.body.temAnexo === true]
+  );
+  res.status(201).json(r.rows[0]);
+});

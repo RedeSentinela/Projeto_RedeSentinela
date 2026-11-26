@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import BottomNav from "../components/BottomNav";
 import PrimaryButton from "../components/PrimaryButton";
 import { colors, typography, spacing } from "../theme/theme";
+import { api } from "../services/api";
 
 // Tipagem simples e local, sem precisar de arquivo separado
 type SafeReportScreenProps = {
@@ -34,7 +35,7 @@ export default function SafeReportScreen({ navigation }: SafeReportScreenProps) 
     if (key === "Profile") navigation.navigate("Contacts");
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!description.trim()) {
       Alert.alert(
         "Conte um pouco mais",
@@ -43,20 +44,22 @@ export default function SafeReportScreen({ navigation }: SafeReportScreenProps) 
       return;
     }
 
-    // TODO: integrar com o backend / envio criptografado do relato
+    try {
+      // sem login o relato fica anônimo (usuario_id vazio no banco)
+      await api("/registros", {
+        body: { descricao: description, local: location, temAnexo: attachEvidence },
+      });
+    } catch (e) {
+      Alert.alert("Não foi possível enviar", (e as Error).message);
+      return;
+    }
+
+    setDescription("");
+    setLocation("");
+    setAttachEvidence(false);
     Alert.alert(
       "Relato enviado",
-      "Seu relato foi enviado com segurança. Obrigado por confiar na Rede Sentinela.",
-      [
-        {
-          text: "OK",
-          onPress: () => {
-            setDescription("");
-            setLocation("");
-            setAttachEvidence(false);
-          },
-        },
-      ]
+      "Seu relato foi enviado com segurança. Obrigado por confiar na Rede Sentinela."
     );
   }
 

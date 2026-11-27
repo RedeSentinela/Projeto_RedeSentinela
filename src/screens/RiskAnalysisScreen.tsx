@@ -69,8 +69,15 @@ export default function RiskAnalysisScreen() {
         <Ionicons name="menu" size={24} color={colors.textDark} />
         <Text style={styles.logo}>SafeSpace</Text>
         <Ionicons name="notifications-outline" size={22} color={colors.textDark} />
-        <Pressable style={styles.avatar} onPress={sair} accessibilityLabel="Sair da conta">
-          <Ionicons name="log-out-outline" size={18} color={colors.brownAccent} />
+                <Pressable
+          style={styles.logoutButton}
+          hitSlop={8}
+          onPress={sair}
+          accessibilityRole="button"
+          accessibilityLabel="Sair da conta"
+        >
+          <Ionicons name="log-out-outline" size={18} color={colors.dangerRed} />
+          <Text style={styles.logoutText}>Sair da conta</Text>
         </Pressable>
       </View>
 
@@ -159,14 +166,18 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.divider,
   },
   logo: { flex: 1, fontSize: 22, fontWeight: "700", color: colors.brownAccent },
-  avatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.divider,
+    logoutButton: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.dangerRed,
+    backgroundColor: colors.dangerRedBg,
   },
+  logoutText: { color: colors.dangerRed, fontWeight: "700", fontSize: 13 },
   scroll: { padding: 20, paddingBottom: 40 },
   erro: { color: colors.dangerRed, fontSize: 14, marginBottom: 12 },
   titulo: { fontSize: 24, fontWeight: "700", color: colors.brownAccent, marginBottom: 16 },

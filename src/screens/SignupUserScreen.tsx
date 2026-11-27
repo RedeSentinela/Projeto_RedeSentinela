@@ -1,5 +1,5 @@
-import React, { useState } from "react"
-import { api, salvarToken } from "../services/api"
+import React, { useState } from "react";
+import { api, salvarToken } from "../services/api";
 import { View, Text, Image, StyleSheet } from "react-native";
 import AuthLayout from "../components/AuthLayout";
 import FormField from "../components/FormField";
@@ -7,6 +7,7 @@ import AuthButton from "../components/AuthButton";
 import SwitchLink from "../components/SwitchLink";
 import { useForm } from "../hooks/useForm";
 import { colors } from "../theme/theme";
+import { erroEmail, erroObrigatorio, erroSenha, semErros } from "../utils/validacao";
 
 type SignupUserScreenProps = {
   navigation: {
@@ -22,7 +23,7 @@ export type SignupUserFormValues = {
 };
 
 export default function SignupUserScreen({ navigation }: SignupUserScreenProps) {
-  const { form, updateField, formValido } = useForm<SignupUserFormValues>({
+  const { form, updateField } = useForm<SignupUserFormValues>({
     email: "",
     nome: "",
     senha: "",
@@ -30,8 +31,17 @@ export default function SignupUserScreen({ navigation }: SignupUserScreenProps) 
 
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
+  const [mostrarErros, setMostrarErros] = useState(false);
+
+  const erros = {
+    email: erroEmail(form.email),
+    nome: erroObrigatorio(form.nome, "o nome"),
+    senha: erroSenha(form.senha, true),
+  };
 
   async function onSubmit() {
+    setMostrarErros(true);
+    if (!semErros(erros)) return;
     setEnviando(true);
     setErro("");
     try {
@@ -72,6 +82,7 @@ export default function SignupUserScreen({ navigation }: SignupUserScreenProps) 
         keyboardType="email-address"
         value={form.email}
         onChangeText={updateField("email")}
+        erro={mostrarErros ? erros.email : ""}
       />
       <FormField
         icon="person-outline"
@@ -80,6 +91,7 @@ export default function SignupUserScreen({ navigation }: SignupUserScreenProps) 
         autoCapitalize="words"
         value={form.nome}
         onChangeText={updateField("nome")}
+        erro={mostrarErros ? erros.nome : ""}
       />
       <FormField
         icon="lock-closed-outline"
@@ -88,12 +100,13 @@ export default function SignupUserScreen({ navigation }: SignupUserScreenProps) 
         senha
         value={form.senha}
         onChangeText={updateField("senha")}
+        erro={mostrarErros ? erros.senha : ""}
       />
 
       <AuthButton
-        label={enviando ? "Entrando..." : "Entrar"}
+        label={enviando ? "Criando conta..." : "Criar conta"}
         onPress={onSubmit}
-        disabled={!formValido || enviando}
+        carregando={enviando}
         erro={erro}
       />
 

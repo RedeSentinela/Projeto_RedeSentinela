@@ -7,15 +7,16 @@ type FormFieldProps = TextInputProps & {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   senha?: boolean; // mostra o olho para exibir/ocultar a senha
+  erro?: string; // mensagem em vermelho embaixo do campo
 };
 
-export default function FormField({ icon, label, senha, ...inputProps }: FormFieldProps) {
+export default function FormField({ icon, label, senha, erro, ...inputProps }: FormFieldProps) {
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
-      <View style={styles.box}>
+      <View style={[styles.box, !!erro && styles.boxErro]}>
         <Ionicons name={icon} size={18} color={colors.brownAccent} />
         <TextInput
           style={styles.input}
@@ -39,6 +40,7 @@ export default function FormField({ icon, label, senha, ...inputProps }: FormFie
           </Pressable>
         ) : null}
       </View>
+      {erro ? <Text style={styles.erro}>{erro}</Text> : null}
     </View>
   );
 }
@@ -62,6 +64,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
+  boxErro: { borderColor: colors.dangerRed },
+  erro: { color: colors.dangerRed, fontSize: 13, marginTop: 4 },
   input: {
     flex: 1,
     minWidth: 0,

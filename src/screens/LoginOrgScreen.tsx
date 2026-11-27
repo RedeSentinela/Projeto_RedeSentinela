@@ -8,6 +8,7 @@ import AuthButton from "../components/AuthButton";
 import SwitchLink from "../components/SwitchLink";
 import { useForm } from "../hooks/useForm";
 import { colors } from "../theme/theme";
+import { erroCnpj, erroSenha, mascaraCnpj, semErros } from "../utils/validacao";
 
 type LoginOrgScreenProps = {
   navigation: {
@@ -22,16 +23,20 @@ export type LoginOrgFormValues = {
 };
 
 export default function LoginOrgScreen({ navigation }: LoginOrgScreenProps) {
-  const { form, updateField, formValido } = useForm<LoginOrgFormValues>({
+  const { form, updateField } = useForm<LoginOrgFormValues>({
     cnpj: "",
     senha: "",
   });
 
-
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
+  const [mostrarErros, setMostrarErros] = useState(false);
+
+  const erros = { cnpj: erroCnpj(form.cnpj), senha: erroSenha(form.senha) };
 
   async function onSubmit() {
+    setMostrarErros(true);
+    if (!semErros(erros)) return;
     setEnviando(true);
     setErro("");
     try {
@@ -66,7 +71,8 @@ export default function LoginOrgScreen({ navigation }: LoginOrgScreenProps) {
         placeholder="00.000.000/0000-00"
         keyboardType="numeric"
         value={form.cnpj}
-        onChangeText={updateField("cnpj")}
+        onChangeText={(t) => updateField("cnpj")(mascaraCnpj(t))}
+        erro={mostrarErros ? erros.cnpj : ""}
       />
       <FormField
         icon="lock-closed-outline"
@@ -75,9 +81,15 @@ export default function LoginOrgScreen({ navigation }: LoginOrgScreenProps) {
         senha
         value={form.senha}
         onChangeText={updateField("senha")}
+        erro={mostrarErros ? erros.senha : ""}
       />
 
-      <AuthButton label={enviando ? "Entrando..." : "Autenticar acesso"} onPress={onSubmit} disabled={!formValido || enviando} erro={erro} />
+      <AuthButton
+        label={enviando ? "Entrando..." : "Autenticar acesso"}
+        onPress={onSubmit}
+        carregando={enviando}
+        erro={erro}
+      />
 
       <SwitchLink
         texto="Nova instituição?"

@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, Text, StyleSheet } from "react-native";
+import { Pressable, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { colors } from "../theme/theme";
 
 type AuthButtonProps = {
@@ -8,26 +8,28 @@ type AuthButtonProps = {
   disabled?: boolean;
   variante?: "primario" | "secundario";
   erro?: string;
+  carregando?: boolean; // mostra a rodinha girando e bloqueia o botão
 };
 
 // Botão marrom dos formulários de login/cadastro (fica apagado enquanto o form não é válido)
-export default function AuthButton({ label, onPress, disabled, variante = "primario", erro }: AuthButtonProps) {
+export default function AuthButton({ label, onPress, disabled, variante = "primario", erro, carregando }: AuthButtonProps) {
   const secundario = variante === "secundario";
   return (
     <>
       {erro ? <Text style={styles.erro}>{erro}</Text> : null}
       <Pressable
         onPress={onPress}
-        disabled={disabled}
+        disabled={disabled || carregando}
         accessibilityRole="button"
-        accessibilityState={{ disabled }}
+        accessibilityState={{ disabled: disabled || carregando, busy: carregando }}
         style={({ pressed }) => [
           styles.button,
           secundario && styles.secundario,
           pressed && !secundario && styles.pressed,
-          disabled && styles.disabled,
+          (disabled || carregando) && styles.disabled,
         ]}
       >
+        {carregando ? <ActivityIndicator color={secundario ? colors.brownAccent : "#fff"} /> : null}
         <Text style={[styles.label, secundario && styles.labelSecundario]}>{label}</Text>
       </Pressable>
     </>
@@ -49,6 +51,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 36,
     alignSelf: "center",
     marginTop: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
   },
   secundario: {
     backgroundColor: "transparent",

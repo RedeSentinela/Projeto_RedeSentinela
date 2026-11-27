@@ -1,5 +1,5 @@
-import React, { useState } from "react"
-import { api, salvarToken } from "../services/api"
+import React, { useState } from "react";
+import { api, salvarToken } from "../services/api";
 import { View, Text, Image, StyleSheet } from "react-native";
 import AuthLayout from "../components/AuthLayout";
 import FormField from "../components/FormField";
@@ -7,6 +7,7 @@ import AuthButton from "../components/AuthButton";
 import SwitchLink from "../components/SwitchLink";
 import { useForm } from "../hooks/useForm";
 import { colors } from "../theme/theme";
+import { erroEmail, erroSenha, semErros } from "../utils/validacao";
 
 type LoginUserScreenProps = {
   navigation: {
@@ -21,28 +22,34 @@ export type LoginUserFormValues = {
 };
 
 export default function LoginUserScreen({ navigation }: LoginUserScreenProps) {
-  const { form, updateField, formValido } = useForm<LoginUserFormValues>({
+  const { form, updateField } = useForm<LoginUserFormValues>({
     email: "",
     senha: "",
   });
 
   const [enviando, setEnviando] = useState(false);
-const [erro, setErro] = useState("");
+  const [erro, setErro] = useState("");
+  const [mostrarErros, setMostrarErros] = useState(false); // só pinta de vermelho depois de tentar entrar
 
-async function onSubmit() {
-  setEnviando(true);
-  setErro("");
-  try {
-    const r = await api<{ token: string }>("/auth/usuario/login", { body: form });
-    salvarToken(r.token);
-  } catch (e) {
-    setErro((e as Error).message);
-    return;
-  } finally {
-    setEnviando(false);
+  const erros = { email: erroEmail(form.email), senha: erroSenha(form.senha) };
+
+  async function onSubmit() {
+    setMostrarErros(true);
+    if (!semErros(erros)) return;
+    setEnviando(true);
+    setErro("");
+    try {
+      const r = await api<{ token: string }>("/auth/usuario/login", { body: form });
+      salvarToken(r.token);
+    } catch (e) {
+      setErro((e as Error).message); // ex: "Email ou senha incorretos."
+      return;
+    } finally {
+      setEnviando(false);
+    }
+    // quem faz login já tem conta, então já viu o guia inicial no cadastro: vai direto para a Home
+    navigation.reset({ index: 0, routes: [{ name: "SearchHelp" }] });
   }
-  navigation.reset({ index: 0, routes: [{ name: "Welcome" }] });
-}
 
   return (
     <AuthLayout
@@ -69,6 +76,7 @@ async function onSubmit() {
         keyboardType="email-address"
         value={form.email}
         onChangeText={updateField("email")}
+        erro={mostrarErros ? erros.email : ""}
       />
       <FormField
         icon="lock-closed-outline"
@@ -77,9 +85,15 @@ async function onSubmit() {
         senha
         value={form.senha}
         onChangeText={updateField("senha")}
+        erro={mostrarErros ? erros.senha : ""}
       />
 
-      <AuthButton label="Entrar" onPress={onSubmit} disabled={!formValido} />
+      <AuthButton
+        label={enviando ? "Entrando..." : "Entrar"}
+        onPress={onSubmit}
+        carregando={enviando}
+        erro={erro}
+      />
 
       <SwitchLink
         texto="Você não tem uma conta?"

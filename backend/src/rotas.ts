@@ -11,11 +11,22 @@ function faltando(body: Record<string, unknown>, campos: string[]) {
   return campos.filter((c) => typeof body[c] !== "string" || !(body[c] as string).trim());
 }
 
+// mesmas regras do app (src/utils/validacao.ts): o servidor confere de novo porque o app pode ser burlado
+const digitos = (v: unknown) => String(v ?? "").replace(/\D/g, "");
+const emailOk = (v: unknown) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v ?? "").trim());
+const cnpjOk = (v: unknown) => digitos(v).length === 14;
+const telefoneOk = (v: unknown) => [10, 11].includes(digitos(v).length);
+const senhaOk = (v: unknown) => String(v ?? "").length >= 6;
+const formatarCnpj = (v: unknown) =>
+  digitos(v).replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+
 rotas.post("/auth/usuario/cadastro", async (req, res) => {
   const vazios = faltando(req.body, ["email", "nome", "senha"]);
   if (vazios.length) return void res.status(400).json({ erro: `Preencha: ${vazios.join(", ")}` });
 
   const { email, nome, senha } = req.body;
+  if (!emailOk(email)) return void res.status(400).json({ erro: "Email inválido." });
+  if (!senhaOk(senha)) return void res.status(400).json({ erro: "A senha precisa ter pelo menos 6 caracteres." });
   const hash = await bcrypt.hash(senha, 10);
 
   const cliente = await db.connect();
@@ -63,11 +74,18 @@ rotas.post("/auth/usuario/login", async (req, res) => {
 /* ===================== ORGANIZAÇÃO ===================== */
 
 rotas.post("/auth/organizacao/cadastro", async (req, res) => {
-  const obrigatorios = ["nome", "cnpj", "telefone", "emailContato", "endereco", "senha"];
+  const obrigatorios = ["nome", "cnpj", "telefone", "emailContato", "endereco", "bairro", "cidade", "uf", "senha"];
   const vazios = faltando(req.body, obrigatorios);
   if (vazios.length) return void res.status(400).json({ erro: `Preencha: ${vazios.join(", ")}` });
 
-  const { nome, cnpj, telefone, emailContato, endereco, senha } = req.body;
+  const { nome, cnpj, telefone, emailContato, endereco, bairro, cidade, uf, descServicos, tipoOrganizacaoId, senha } =
+    req.body;
+  if (!cnpjOk(cnpj)) return void res.status(400).json({ erro: "O CNPJ precisa ter 14 números." });
+  if (!telefoneOk(telefone)) return void res.status(400).json({ erro: "Telefone com DDD: 10 ou 11 números." });
+  if (!emailOk(emailContato)) return void res.status(400).json({ erro: "Email de contato inválido." });
+  if (!/^[A-Za-z]{2}$/.test(uf.trim())) return void res.status(400).json({ erro: "UF tem 2 letras. Ex: SP" });
+  if (!Number.isInteger(tipoOrganizacaoId)) return void res.status(400).json({ erro: "Escolha o tipo de organização." });
+  if (!senhaOk(senha)) return void res.status(400).json({ erro: "A senha precisa ter pelo menos 6 caracteres." });
   const hash = await bcrypt.hash(senha, 10);
 
   const cliente = await db.connect();
@@ -78,9 +96,22 @@ rotas.post("/auth/organizacao/cadastro", async (req, res) => {
       [TIPO_ORGANIZACAO, hash]
     );
     const org = await cliente.query(
-      `INSERT INTO organizacao (conta_id, nome, cnpj, telefone, email_contato, endereco)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING organizacao_id, nome`,
-      [conta.rows[0].conta_id, nome.trim(), cnpj.trim(), telefone.trim(), emailContato.trim(), endereco.trim()]
+      `INSERT INTO organizacao (conta_id, tipo_organizacao_id, nome, cnpj, telefone, email_contato,
+                                endereco, bairro, cidade, uf, desc_servicos)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING organizacao_id, nome`,
+      [
+        conta.rows[0].conta_id,
+        tipoOrganizacaoId,
+        nome.trim(),
+        formatarCnpj(cnpj),
+        telefone.trim(),
+        emailContato.trim().toLowerCase(),
+        endereco.trim(),
+        bairro.trim(),
+        cidade.trim(),
+        uf.trim().toUpperCase(),
+        typeof descServicos === "string" && descServicos.trim() ? descServicos.trim() : null,
+      ]
     );
     await cliente.query("COMMIT");
 
@@ -102,8 +133,8 @@ rotas.post("/auth/organizacao/login", async (req, res) => {
   const r = await db.query(
     `SELECT c.conta_id, c.senha_hash, o.organizacao_id, o.nome
        FROM organizacao o JOIN conta c ON c.conta_id = o.conta_id
-      WHERE o.cnpj = $1 AND o.ativo`,
-    [req.body.cnpj.trim()]
+      WHERE regexp_replace(o.cnpj, '\\D', '', 'g') = $1 AND o.ativo`,
+    [digitos(req.body.cnpj)] // compara só os números, com ou sem pontos e barra
   );
   const linha = r.rows[0];
   if (!linha || !(await bcrypt.compare(req.body.senha, linha.senha_hash))) {
@@ -111,6 +142,12 @@ rotas.post("/auth/organizacao/login", async (req, res) => {
   }
   const token = gerarToken({ contaId: linha.conta_id, tipo: "organizacao", id: linha.organizacao_id });
   res.json({ token, organizacao: { id: linha.organizacao_id, nome: linha.nome } });
+});
+
+// lista para a tela de cadastro da ONG
+rotas.get("/tipos-organizacao", async (_req, res) => {
+  const r = await db.query("SELECT tipo_organizacao_id AS id, nome FROM tipo_organizacao ORDER BY nome");
+  res.json(r.rows);
 });
 
 // GET /organizacoes?bairro=itaquera  (procura no bairro e no endereço)
@@ -139,6 +176,9 @@ rotas.post("/contatos", exigirLogin("usuario"), async (req, res) => {
   const vazios = faltando(req.body, ["nome", "telefone"]);
   if (vazios.length) return void res.status(400).json({ erro: `Preencha: ${vazios.join(", ")}` });
 
+  if (!telefoneOk(req.body.telefone)) {
+    return void res.status(400).json({ erro: "Telefone com DDD: 10 ou 11 números." });
+  }
   const { id } = res.locals.sessao as Sessao;
   const r = await db.query(
     `INSERT INTO contato_emergencia (usuario_id, nome, telefone, relacao)
@@ -146,6 +186,24 @@ rotas.post("/contatos", exigirLogin("usuario"), async (req, res) => {
     [id, req.body.nome.trim(), req.body.telefone.trim(), req.body.relacao?.trim() || null]
   );
   res.status(201).json(r.rows[0]);
+});
+
+// editar contato (só se for da própria usuária)
+rotas.put("/contatos/:id", exigirLogin("usuario"), async (req, res) => {
+  const vazios = faltando(req.body, ["nome", "telefone"]);
+  if (vazios.length) return void res.status(400).json({ erro: `Preencha: ${vazios.join(", ")}` });
+  if (!telefoneOk(req.body.telefone)) {
+    return void res.status(400).json({ erro: "Telefone com DDD: 10 ou 11 números." });
+  }
+  const { id } = res.locals.sessao as Sessao;
+  const r = await db.query(
+    `UPDATE contato_emergencia SET nome = $1, telefone = $2, relacao = $3
+      WHERE contato_id = $4 AND usuario_id = $5
+      RETURNING contato_id AS id, nome, telefone, relacao`,
+    [req.body.nome.trim(), req.body.telefone.trim(), req.body.relacao?.trim() || null, Number(req.params.id), id]
+  );
+  if (!r.rowCount) return void res.status(404).json({ erro: "Contato não encontrado." });
+  res.json(r.rows[0]);
 });
 
 rotas.delete("/contatos/:id", exigirLogin("usuario"), async (req, res) => {

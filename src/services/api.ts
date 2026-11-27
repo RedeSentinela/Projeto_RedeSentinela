@@ -1,4 +1,5 @@
 export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
+console.log("API_URL =", API_URL);
 
 // o token fica na memória (some ao fechar o app)
 let token: string | null = null;

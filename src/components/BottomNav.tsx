@@ -37,8 +37,8 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     key: "Profile",
-    label: "Meu Perfil",
-    icon: "person-outline",
+    label: "Contatos",
+    icon: "people-outline",
   },
 ];
 
@@ -118,16 +118,27 @@ function NativeTabBar({
         </Text>
       </Pressable>
 
-      {/* ESPAÇO DO + */}
-      <View style={styles.tabItem} />
+      {/* + CENTRAL (na própria coluna, nivelado com os outros) */}
+      <View style={styles.tabItem}>
+        <Pressable
+          style={styles.centralButton}
+          onPress={() => onNavigate("Report")}
+        >
+          <Ionicons
+            name="add"
+            size={26}
+            color="#FFFFFF"
+          />
+        </Pressable>
+      </View>
 
-      {/* PROFILE */}
+      {/* CONTATOS */}
       <Pressable
         style={styles.tabItem}
         onPress={() => onNavigate("Profile")}
       >
         <Ionicons
-          name="person-outline"
+          name="people-outline"
           size={23}
           color={
             activeKey === "Profile"
@@ -142,20 +153,8 @@ function NativeTabBar({
             activeKey === "Profile" && styles.tabLabelActive,
           ]}
         >
-          Perfil
+          Contatos
         </Text>
-      </Pressable>
-
-      {/* + CENTRAL */}
-      <Pressable
-        style={styles.centralButton}
-        onPress={() => onNavigate("Report")}
-      >
-        <Ionicons
-          name="add"
-          size={29}
-          color="#FFFFFF"
-        />
       </Pressable>
     </View>
   );
@@ -340,26 +339,16 @@ const styles = StyleSheet.create({
      ------------------------------------------------------- */
 
   centralButton: {
-    position: "absolute",
+    // mesmo nível dos outros ícones, dentro da barra branca
+    width: 46,
+    height: 46,
 
-    left: "50%",
-    top: -26,
-
-    width: 52,
-    height: 52,
-
-    borderRadius: 26,
+    borderRadius: 23,
 
     alignItems: "center",
     justifyContent: "center",
 
     backgroundColor: colors.brownAccentDark,
-
-    transform: [
-      {
-        translateX: -26,
-      },
-    ],
 
     zIndex: 200,
 

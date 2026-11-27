@@ -259,8 +259,15 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
               />
               <Text style={styles.headerTitle}>Meus Contatos</Text>
             </View>
-            <Pressable hitSlop={12} onPress={sair} accessibilityLabel="Sair da conta">
-              <Ionicons name="log-out-outline" size={22} color={colors.textDark} />
+            <Pressable
+              style={styles.logoutButton}
+              hitSlop={8}
+              onPress={sair}
+              accessibilityRole="button"
+              accessibilityLabel="Sair da conta"
+            >
+              <Ionicons name="log-out-outline" size={18} color={colors.dangerRed} />
+              <Text style={styles.logoutText}>Sair da conta</Text>
             </Pressable>
           </View>
 
@@ -447,6 +454,18 @@ const styles = StyleSheet.create({
   },
   headerLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
   headerTitle: { ...typography.h2, fontSize: 20 },
+  logoutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.dangerRed,
+    backgroundColor: colors.dangerRedBg,
+  },
+  logoutText: { color: colors.dangerRed, fontWeight: "700", fontSize: 13 },
 
   helpCard: {
     backgroundColor: colors.surfaceMuted,

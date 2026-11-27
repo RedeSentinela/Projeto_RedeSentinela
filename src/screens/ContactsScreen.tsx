@@ -7,6 +7,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  KeyboardAvoidingView,
   Linking,
   ActivityIndicator,
   Platform,
@@ -19,6 +20,7 @@ import BottomNav from "../components/BottomNav";
 import { useNavigation } from "@react-navigation/native";
 import { api, salvarToken } from "../services/api";
 import { colors, typography, spacing } from "../theme/theme";
+import { erroObrigatorio, erroTelefone, mascaraTelefone } from "../utils/validacao";
 
 // Tipagem simples e local, sem precisar de arquivo separado
 type ContactsScreenProps = {
@@ -43,7 +45,7 @@ function paraContato(c: ContatoApi, i: number): Contact {
   return {
     id: String(c.id),
     name: c.nome,
-    relation: c.relacao ?? "Contato",
+    relation: c.relacao ?? "", // vazio = sem relação informada
     phone: c.telefone,
     avatarBg: CORES_AVATAR[i % CORES_AVATAR.length],
   };
@@ -75,6 +77,9 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [novo, setNovo] = useState({ nome: "", telefone: "", relacao: "" });
   const [salvando, setSalvando] = useState(false);
+  const [editandoId, setEditandoId] = useState<string | null>(null); // null = criando um contato novo
+  const [mostrarErros, setMostrarErros] = useState(false);
+  const errosForm = { nome: erroObrigatorio(novo.nome, "o nome"), telefone: erroTelefone(novo.telefone) };
 
   // carrega os contatos da usuária logada
   useEffect(() => {
@@ -203,18 +208,35 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
     );
   }
 
-  function handleAddNew() {
-    setMostrarForm((v) => !v);
+  function fecharForm() {
+    setMostrarForm(false);
+    setEditandoId(null);
+    setMostrarErros(false);
+    setNovo({ nome: "", telefone: "", relacao: "" });
   }
 
-  async function salvarNovo() {
+  function handleAddNew() {
+    if (mostrarForm && !editandoId) return fecharForm();
+    fecharForm();
+    setMostrarForm(true);
+  }
+
+  async function salvar() {
+    setMostrarErros(true);
+    if (errosForm.nome || errosForm.telefone) return;
     setSalvando(true);
     setErro("");
     try {
-      const criado = await api<ContatoApi>("/contatos", { body: novo });
-      setContacts((prev) => [...prev, paraContato(criado, prev.length)]);
-      setNovo({ nome: "", telefone: "", relacao: "" });
-      setMostrarForm(false);
+      if (editandoId) {
+        const editado = await api<ContatoApi>(`/contatos/${editandoId}`, { method: "PUT", body: novo });
+        setContacts((prev) =>
+          prev.map((c, i) => (c.id === editandoId ? paraContato(editado, i) : c))
+        );
+      } else {
+        const criado = await api<ContatoApi>("/contatos", { body: novo });
+        setContacts((prev) => [...prev, paraContato(criado, prev.length)]);
+      }
+      fecharForm();
     } catch (e) {
       setErro((e as Error).message);
     } finally {
@@ -222,9 +244,13 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
     }
   }
 
+  // abre o formulário já preenchido, logo embaixo do contato
   function handleEdit(contact: Contact) {
-    // TODO: abrir formulário de edição pré-preenchido
-    Alert.alert("Editar contato", `Editar dados de ${contact.name}.`);
+    if (editandoId === contact.id) return fecharForm(); // tocar no lápis de novo fecha
+    setNovo({ nome: contact.name, telefone: mascaraTelefone(contact.phone), relacao: contact.relation });
+    setEditandoId(contact.id);
+    setMostrarErros(false);
+    setMostrarForm(true);
   }
 
   function handleDelete(contact: Contact) {
@@ -242,12 +268,66 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
     );
   }
 
+  // mesmo formulário para criar e para editar
+  const formulario = (
+    <View style={styles.formCard}>
+      <Text style={styles.formTitulo}>{editandoId ? "Editar contato" : "Novo contato"}</Text>
+      <TextInput
+        style={[styles.formInput, mostrarErros && !!errosForm.nome && styles.formInputErro]}
+        placeholder="Nome"
+        placeholderTextColor={colors.textMuted}
+        value={novo.nome}
+        onChangeText={(nome) => setNovo((n) => ({ ...n, nome }))}
+        accessibilityLabel="Nome do contato"
+      />
+      {mostrarErros && errosForm.nome ? <Text style={styles.erroCampo}>{errosForm.nome}</Text> : null}
+      <TextInput
+        style={[styles.formInput, mostrarErros && !!errosForm.telefone && styles.formInputErro]}
+        placeholder="Telefone (com DDD)"
+        placeholderTextColor={colors.textMuted}
+        keyboardType="phone-pad"
+        value={novo.telefone}
+        onChangeText={(t) => setNovo((n) => ({ ...n, telefone: mascaraTelefone(t) }))}
+        accessibilityLabel="Telefone do contato"
+      />
+      {mostrarErros && errosForm.telefone ? (
+        <Text style={styles.erroCampo}>{errosForm.telefone}</Text>
+      ) : null}
+      <TextInput
+        style={styles.formInput}
+        placeholder="Relação (ex: mãe, amiga)"
+        placeholderTextColor={colors.textMuted}
+        value={novo.relacao}
+        onChangeText={(relacao) => setNovo((n) => ({ ...n, relacao }))}
+        accessibilityLabel="Relação com o contato"
+      />
+      <View style={styles.formBotoes}>
+        <Pressable style={styles.formCancelar} onPress={fecharForm} accessibilityRole="button">
+          <Text style={styles.formCancelarLabel}>Cancelar</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.formButton, styles.flex, salvando && { opacity: 0.5 }]}
+          onPress={salvar}
+          disabled={salvando}
+          accessibilityRole="button"
+        >
+          <Text style={styles.formButtonLabel}>
+            {salvando ? "Salvando..." : editandoId ? "Salvar alterações" : "Salvar contato"}
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+
   return (
     <View style={styles.root}>
+      {/* sobe o conteúdo quando o teclado abre, para ele não tampar o campo */}
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "web" ? undefined : "padding"}>
       <SafeAreaView edges={["top", "bottom"]} style={styles.flex}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           {/* HEADER */}
           <View style={styles.header}>
@@ -332,7 +412,8 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
           </View>
 
           {filteredContacts.map((contact) => (
-            <View key={contact.id} style={styles.contactCard}>
+            <React.Fragment key={contact.id}>
+            <View style={styles.contactCard}>
               <View style={[styles.avatar, { backgroundColor: contact.avatarBg }]}>
                 <Ionicons name="person" size={20} color={colors.brownAccentDark} />
               </View>
@@ -340,7 +421,7 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
               <View style={styles.contactInfo}>
                 <Text style={styles.contactName}>{contact.name}</Text>
                 <Text style={styles.contactMeta}>
-                  {contact.relation} • {contact.phone}
+                  {contact.relation || "Contato"} • {contact.phone}
                 </Text>
               </View>
 
@@ -348,6 +429,7 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
                 hitSlop={8}
                 style={styles.iconButton}
                 onPress={() => handleEdit(contact)}
+                accessibilityLabel={`Editar ${contact.name}`}
               >
                 <Ionicons name="pencil" size={18} color={colors.textMuted} />
               </Pressable>
@@ -359,6 +441,8 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
                 <Ionicons name="trash" size={18} color={colors.dangerRed} />
               </Pressable>
             </View>
+            {editandoId === contact.id && formulario}
+            </React.Fragment>
           ))}
 
           {filteredContacts.length === 0 && (
@@ -367,44 +451,8 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
 
           {erro ? <Text style={styles.erroText}>{erro}</Text> : null}
 
-          {/* FORMULÁRIO DE NOVO CONTATO */}
-          {mostrarForm && (
-            <View style={styles.formCard}>
-              <TextInput
-                style={styles.formInput}
-                placeholder="Nome"
-                placeholderTextColor={colors.textMuted}
-                value={novo.nome}
-                onChangeText={(nome) => setNovo((n) => ({ ...n, nome }))}
-                accessibilityLabel="Nome do contato"
-              />
-              <TextInput
-                style={styles.formInput}
-                placeholder="Telefone (com DDD)"
-                placeholderTextColor={colors.textMuted}
-                keyboardType="phone-pad"
-                value={novo.telefone}
-                onChangeText={(telefone) => setNovo((n) => ({ ...n, telefone }))}
-                accessibilityLabel="Telefone do contato"
-              />
-              <TextInput
-                style={styles.formInput}
-                placeholder="Relação (ex: mãe, amiga)"
-                placeholderTextColor={colors.textMuted}
-                value={novo.relacao}
-                onChangeText={(relacao) => setNovo((n) => ({ ...n, relacao }))}
-                accessibilityLabel="Relação com o contato"
-              />
-              <Pressable
-                style={[styles.formButton, (salvando || !novo.nome.trim() || !novo.telefone.trim()) && { opacity: 0.5 }]}
-                onPress={salvarNovo}
-                disabled={salvando || !novo.nome.trim() || !novo.telefone.trim()}
-                accessibilityRole="button"
-              >
-                <Text style={styles.formButtonLabel}>{salvando ? "Salvando..." : "Salvar contato"}</Text>
-              </Pressable>
-            </View>
-          )}
+          {/* FORMULÁRIO DE NOVO CONTATO (o de edição aparece embaixo do contato) */}
+          {mostrarForm && !editandoId && formulario}
 
           {/* ADICIONAR NOVO */}
           <Pressable style={styles.addNewButton} onPress={handleAddNew}>
@@ -431,6 +479,7 @@ export default function ContactsScreen({ navigation }: ContactsScreenProps) {
           </View>
         </ScrollView>
       </SafeAreaView>
+      </KeyboardAvoidingView>
 
       <BottomNav activeKey="Profile" onNavigate={handleNavigate} />
     </View>
@@ -602,6 +651,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   formButtonLabel: { color: "#FFFFFF", fontWeight: "700", fontSize: 15 },
+  formTitulo: { fontSize: 15, fontWeight: "700", color: colors.textDark },
+  formInputErro: { borderColor: colors.dangerRed },
+  erroCampo: { color: colors.dangerRed, fontSize: 13, marginTop: -4 },
+  formBotoes: { flexDirection: "row", gap: spacing.sm },
+  formCancelar: {
+    borderWidth: 1.5,
+    borderColor: colors.brownAccent,
+    borderRadius: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    alignItems: "center",
+  },
+  formCancelarLabel: { color: colors.brownAccent, fontWeight: "700", fontSize: 15 },
 
   infoBox: {
     flexDirection: "row",

@@ -6,15 +6,24 @@ import {
   Pressable,
   ScrollView,
   TextInput,
-  Switch,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as DocumentPicker from "expo-document-picker";
+import { File } from "expo-file-system";
 import { Ionicons } from "@expo/vector-icons";
 import BottomNav from "../components/BottomNav";
 import PrimaryButton from "../components/PrimaryButton";
 import { colors, typography, spacing } from "../theme/theme";
 import { api } from "../services/api";
+
+const MAX_ANEXOS = 3;
+const MAX_MB = 10;
+
+// parte = o arquivo em si (File do navegador ou File do expo-file-system, os dois funcionam como Blob)
+type Anexo = { nome: string; tipo: string; tamanho: number; parte: Blob };
 
 // Tipagem simples e local, sem precisar de arquivo separado
 type SafeReportScreenProps = {
@@ -26,7 +35,42 @@ type SafeReportScreenProps = {
 export default function SafeReportScreen({ navigation }: SafeReportScreenProps) {
   const [description, setDescription] = useState<string>("");
   const [location, setLocation] = useState<string>("");
-  const [attachEvidence, setAttachEvidence] = useState<boolean>(false);
+  const [anexos, setAnexos] = useState<Anexo[]>([]);
+  const [enviando, setEnviando] = useState(false);
+
+  // abre a galeria/arquivos do celular, só com imagens e áudios
+  async function escolherAnexo() {
+    let escolhidos: Anexo[] = [];
+    if (Platform.OS === "web") {
+      const r = await DocumentPicker.getDocumentAsync({ type: ["image/*", "audio/*"], multiple: true });
+      if (r.canceled) return;
+      escolhidos = r.assets.flatMap((a) =>
+        a.file ? [{ nome: a.name, tipo: a.mimeType ?? a.file.type, tamanho: a.size ?? a.file.size, parte: a.file }] : []
+      );
+    } else {
+      // no celular usamos o seletor do expo-file-system: ele já dá permissão de leitura do arquivo
+      const r = await File.pickFileAsync({ mimeTypes: ["image/*", "audio/*"], multipleFiles: true });
+      if (r.canceled) return;
+      escolhidos = r.result.map((f) => ({
+        nome: f.name,
+        tipo: f.type ?? "",
+        tamanho: f.size ?? 0,
+        parte: f as unknown as Blob,
+      }));
+    }
+    const grandes = escolhidos.filter((a) => a.tamanho > MAX_MB * 1024 * 1024);
+    if (grandes.length) {
+      Alert.alert("Arquivo muito grande", `Cada anexo pode ter no máximo ${MAX_MB} MB.`);
+    }
+    const novos = escolhidos.filter((a) => a.tamanho <= MAX_MB * 1024 * 1024);
+    setAnexos((atuais) => {
+      const juntos = [...atuais, ...novos];
+      if (juntos.length > MAX_ANEXOS) {
+        Alert.alert("Limite de anexos", `Você pode anexar até ${MAX_ANEXOS} arquivos.`);
+      }
+      return juntos.slice(0, MAX_ANEXOS);
+    });
+  }
 
   function handleNavigate(key: string) {
     if (key === "Home") navigation.navigate("SearchHelp");
@@ -44,19 +88,26 @@ export default function SafeReportScreen({ navigation }: SafeReportScreenProps) 
       return;
     }
 
+    // texto + arquivos vão juntos num FormData
+    const dados = new FormData();
+    dados.append("descricao", description);
+    dados.append("local", location);
+    for (const a of anexos) dados.append("anexos", a.parte, a.nome);
+
+    setEnviando(true);
     try {
       // sem login o relato fica anônimo (usuario_id vazio no banco)
-      await api("/registros", {
-        body: { descricao: description, local: location, temAnexo: attachEvidence },
-      });
+      await api("/registros", { body: dados });
     } catch (e) {
       Alert.alert("Não foi possível enviar", (e as Error).message);
       return;
+    } finally {
+      setEnviando(false);
     }
 
     setDescription("");
     setLocation("");
-    setAttachEvidence(false);
+    setAnexos([]);
     Alert.alert(
       "Relato enviado",
       "Seu relato foi enviado com segurança. Obrigado por confiar na Rede Sentinela."
@@ -65,10 +116,13 @@ export default function SafeReportScreen({ navigation }: SafeReportScreenProps) 
 
   return (
     <View style={styles.root}>
+      {/* sobe o conteúdo quando o teclado abre, para ele não tampar o campo */}
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "web" ? undefined : "padding"}>
       <SafeAreaView edges={["top", "bottom"]} style={styles.flex}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           {/* HEADER */}
           <View style={styles.header}>
@@ -145,21 +199,46 @@ export default function SafeReportScreen({ navigation }: SafeReportScreenProps) 
           </View>
 
           {/* ANEXAR EVIDÊNCIA */}
-          <View style={styles.attachRow}>
+          <Pressable
+            style={styles.attachRow}
+            onPress={escolherAnexo}
+            disabled={anexos.length >= MAX_ANEXOS}
+            accessibilityRole="button"
+            accessibilityLabel="Adicionar foto ou áudio"
+          >
             <Ionicons name="attach" size={18} color={colors.textDark} />
             <View style={styles.attachTextWrap}>
               <Text style={styles.attachTitle}>Anexar evidência</Text>
               <Text style={styles.attachSubtitle}>
-                Fotos, áudios ou capturas de tela
+                Fotos, áudios ou capturas de tela (até {MAX_ANEXOS}, {MAX_MB} MB cada)
               </Text>
             </View>
-            <Switch
-              value={attachEvidence}
-              onValueChange={setAttachEvidence}
-              trackColor={{ false: colors.divider, true: colors.oliveDark }}
-              thumbColor="#FFFFFF"
+            <Ionicons
+              name="add-circle"
+              size={26}
+              color={anexos.length >= MAX_ANEXOS ? colors.divider : colors.oliveDark}
             />
-          </View>
+          </Pressable>
+
+          {anexos.map((a, i) => (
+            <View key={`${a.nome}-${i}`} style={styles.anexoItem}>
+              <Ionicons
+                name={a.tipo.startsWith("audio") ? "musical-notes-outline" : "image-outline"}
+                size={18}
+                color={colors.oliveDark}
+              />
+              <Text style={styles.anexoNome} numberOfLines={1}>
+                {a.nome}
+              </Text>
+              <Pressable
+                hitSlop={10}
+                onPress={() => setAnexos((atuais) => atuais.filter((_, j) => j !== i))}
+                accessibilityLabel={`Remover ${a.nome}`}
+              >
+                <Ionicons name="close-circle" size={20} color={colors.dangerRed} />
+              </Pressable>
+            </View>
+          ))}
 
           {/* INFO / CRIPTOGRAFIA */}
           <View style={styles.infoBox}>
@@ -178,13 +257,14 @@ export default function SafeReportScreen({ navigation }: SafeReportScreenProps) 
           {/* ENVIAR */}
           <View style={styles.submitWrapper}>
             <PrimaryButton
-              label="Enviar Relato Seguro"
+              label={enviando ? "Enviando..." : "Enviar Relato Seguro"}
               icon="arrow-forward"
-              onPress={handleSubmit}
+              onPress={enviando ? () => {} : handleSubmit}
             />
           </View>
         </ScrollView>
       </SafeAreaView>
+      </KeyboardAvoidingView>
 
       <BottomNav activeKey="Report" onNavigate={handleNavigate} />
     </View>
@@ -192,6 +272,17 @@ export default function SafeReportScreen({ navigation }: SafeReportScreenProps) 
 }
 
 const styles = StyleSheet.create({
+  anexoItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginTop: 8,
+  },
+  anexoNome: { flex: 1, fontSize: 14, color: colors.textDark },
   root: { flex: 1, backgroundColor: colors.creamBg },
   flex: { flex: 1 },
   scrollContent: {

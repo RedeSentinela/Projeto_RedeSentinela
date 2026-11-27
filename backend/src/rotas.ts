@@ -1,5 +1,6 @@
-import { Router } from "express";
+import { Router, type Request, type Response, type NextFunction } from "express";
 import bcrypt from "bcryptjs";
+import multer from "multer";
 import { db } from "./db";
 import { gerarToken, exigirLogin, loginOpcional, type Sessao } from "./auth";
 
@@ -217,19 +218,65 @@ rotas.delete("/contatos/:id", exigirLogin("usuario"), async (req, res) => {
   res.status(204).end();
 });
 
+// anexos da denúncia: até 3 arquivos de imagem ou áudio, 10 MB cada, guardados no banco
+const MAX_ANEXOS = 3;
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024, files: MAX_ANEXOS },
+  fileFilter: (_req, arquivo, ok) =>
+    /^(image|audio)\//.test(arquivo.mimetype)
+      ? ok(null, true)
+      : ok(Object.assign(new Error("tipo"), { code: "TIPO_INVALIDO" })),
+}).array("anexos", MAX_ANEXOS);
+
+function receberAnexos(req: Request, res: Response, next: NextFunction) {
+  upload(req, res, (err: unknown) => {
+    if (!err) return next();
+    const codigo = (err as { code?: string }).code;
+    const erro =
+      codigo === "LIMIT_FILE_SIZE"
+        ? "Cada anexo pode ter no máximo 10 MB."
+        : codigo === "LIMIT_FILE_COUNT" || codigo === "LIMIT_UNEXPECTED_FILE"
+          ? `Envie no máximo ${MAX_ANEXOS} anexos.`
+          : codigo === "TIPO_INVALIDO"
+            ? "Só dá para anexar imagem ou áudio."
+            : "Não foi possível receber os anexos.";
+    res.status(400).json({ erro });
+  });
+}
+
 // login opcional: sem token, o relato fica anônimo
-rotas.post("/registros", loginOpcional, async (req, res) => {
+// aceita JSON (sem anexo) ou multipart/form-data (com anexos no campo "anexos")
+rotas.post("/registros", loginOpcional, receberAnexos, async (req, res) => {
   if (faltando(req.body, ["descricao"]).length) {
     return void res.status(400).json({ erro: "Descreva o que aconteceu." });
   }
+  const anexos = (req.files as Express.Multer.File[] | undefined) ?? [];
   const sessao = res.locals.sessao as Sessao | null;
   const usuarioId = sessao?.tipo === "usuario" ? sessao.id : null;
-  const r = await db.query(
-    `INSERT INTO registro_seguro (usuario_id, descricao, local, tem_anexo)
-     VALUES ($1, $2, $3, $4) RETURNING registro_id AS id, criado_em AS "criadoEm"`,
-    [usuarioId, req.body.descricao.trim(), req.body.local?.trim() || null, req.body.temAnexo === true]
-  );
-  res.status(201).json(r.rows[0]);
+
+  const cliente = await db.connect();
+  try {
+    await cliente.query("BEGIN");
+    const r = await cliente.query(
+      `INSERT INTO registro_seguro (usuario_id, descricao, local, tem_anexo)
+       VALUES ($1, $2, $3, $4) RETURNING registro_id AS id, criado_em AS "criadoEm"`,
+      [usuarioId, req.body.descricao.trim(), req.body.local?.trim() || null, anexos.length > 0]
+    );
+    for (const a of anexos) {
+      await cliente.query(
+        "INSERT INTO anexo (registro_id, nome_arquivo, tipo_mime, tamanho, dados) VALUES ($1, $2, $3, $4, $5)",
+        [r.rows[0].id, a.originalname, a.mimetype, a.size, a.buffer]
+      );
+    }
+    await cliente.query("COMMIT");
+    res.status(201).json({ ...r.rows[0], anexos: anexos.length });
+  } catch (e) {
+    await cliente.query("ROLLBACK");
+    throw e;
+  } finally {
+    cliente.release();
+  }
 });
 
 // GET /analise?dias=30 -> números dos cards e do gráfico

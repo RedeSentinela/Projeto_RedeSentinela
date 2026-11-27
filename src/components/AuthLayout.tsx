@@ -28,9 +28,14 @@ export default function AuthLayout({ painel, titulo, children, painelEmbaixo }: 
   return (
     <KeyboardAvoidingView
       style={styles.root}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      // "padding" também no Android: com a tela de ponta a ponta (edge-to-edge) o Android não empurra mais a tela sozinho
+      behavior={Platform.OS === "web" ? undefined : "padding"}
     >
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         {painelEmbaixo ? card : verde}
         {painelEmbaixo ? verde : card}
       </ScrollView>
